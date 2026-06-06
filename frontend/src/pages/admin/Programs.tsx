@@ -47,7 +47,7 @@ function ProgramFormModal({ isOpen, onClose, program, categories }: {
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 shrink-0">
-          <h2 className="text-lg font-bold">{isEdit ? 'Edit Program' : 'Tambah Program Baru'}</h2>
+          <h2 className="text-sm font-bold">{isEdit ? 'Edit Program' : 'Tambah Program Baru'}</h2>
           <Button variant="ghost" size="icon" onClick={onClose}><X className="h-4 w-4" /></Button>
         </div>
         <div className="flex-1 overflow-y-auto p-6 space-y-4">
@@ -138,8 +138,8 @@ function DeleteConfirmDialog({ isOpen, onClose, program, onConfirm, isPending }:
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6" onClick={e => e.stopPropagation()}>
-        <h2 className="text-lg font-bold mb-2">Konfirmasi</h2>
-        <p className="text-sm text-muted-foreground mb-6">
+        <h2 className="text-sm font-bold mb-2">Konfirmasi</h2>
+        <p className="text-xs text-muted-foreground mb-6">
           Yakin ingin menonaktifkan program <strong>{program?.name}</strong>?
         </p>
         <div className="flex justify-end gap-2">
@@ -201,8 +201,8 @@ export default function AdminProgramsPage() {
         {/* ── Toolbar Atas ── */}
         <div className="px-5 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <h2 className="text-[17px] font-semibold text-slate-800">Manajemen Program</h2>
-            <span className="text-sm text-slate-400">
+            <h2 className="text-xs font-semibold text-slate-800">Manajemen Program</h2>
+            <span className="text-xs text-slate-400">
               {page} of {data?.pagination?.totalPages || 1}
             </span>
             <div className="flex border border-slate-200 rounded-lg overflow-hidden bg-slate-50">
@@ -227,7 +227,7 @@ export default function AdminProgramsPage() {
           <div className="flex items-center gap-2">
             <div className="relative">
               <Button variant="outline" size="sm"
-                className="h-9 text-sm font-medium border-slate-200 text-slate-600 rounded-lg"
+                className="h-9 text-xs font-medium border-slate-200 text-slate-600 rounded-lg"
                 onClick={() => setShowManage(!showManage)}>
                 <SlidersHorizontal className="h-3.5 w-3.5 mr-1.5" /> Manage
               </Button>
@@ -259,7 +259,7 @@ export default function AdminProgramsPage() {
               )}
               {showManage && <div className="fixed inset-0 z-10" onClick={() => setShowManage(false)} />}
             </div>
-            <Button className="gap-2 h-9 text-sm font-medium rounded-lg" onClick={() => setAddModalOpen(true)}>
+            <Button className="gap-2 h-9 text-xs font-medium" onClick={() => setAddModalOpen(true)}>
               <Plus className="h-3.5 w-3.5" /> Tambah Program
             </Button>
           </div>
@@ -274,7 +274,7 @@ export default function AdminProgramsPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
             <Input
               placeholder="Cari program..."
-              className="pl-9 h-9 w-52 rounded-lg text-[13px] border-slate-200 bg-slate-50 shadow-none focus-visible:ring-1 focus-visible:ring-indigo-100 focus-visible:border-indigo-300"
+              className="pl-9 h-9 w-52 rounded-lg text-xs border-slate-200 bg-slate-50 shadow-none focus-visible:ring-1 focus-visible:ring-indigo-100 focus-visible:border-indigo-300"
               value={search}
               onChange={e => { setSearch(e.target.value); setPage(1) }}
             />
@@ -283,36 +283,36 @@ export default function AdminProgramsPage() {
 
         {/* ── Table ── */}
         <div className="overflow-x-auto">
-          <table className="w-full text-sm border-collapse">
+          <table className="w-full text-xs border-collapse">
             <thead>
               <tr>
                 <th className="px-4 py-3.5 text-left border border-slate-100 bg-slate-50/50">
-                  <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                  <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
                     <Grid className="h-3 w-3" /> Nama Program
                   </span>
                 </th>
                 <th className="px-4 py-3.5 text-left border border-slate-100 bg-slate-50/50">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Kategori</span>
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Kategori</span>
                 </th>
                 <th className="px-4 py-3.5 text-left border border-slate-100 bg-slate-50/50">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Biaya</span>
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Biaya</span>
                 </th>
                 <th className="px-4 py-3.5 text-left border border-slate-100 bg-slate-50/50">
-                  <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                  <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
                     <Clock className="h-3 w-3" /> Kuota
                   </span>
                 </th>
                 <th className="px-4 py-3.5 text-left border border-slate-100 bg-slate-50/50">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Komisi</span>
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Komisi</span>
                 </th>
                 <th className="px-4 py-3.5 text-left border border-slate-100 bg-slate-50/50">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Status</span>
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Status</span>
                 </th>
                 <th className="px-4 py-3.5 text-left border border-slate-100 bg-slate-50/50">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Link</span>
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Link</span>
                 </th>
                 <th className="px-4 py-3.5 text-right border border-slate-100 bg-slate-50/50">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Aksi</span>
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Aksi</span>
                 </th>
               </tr>
             </thead>
@@ -343,13 +343,13 @@ export default function AdminProgramsPage() {
                     ) : '-'}
                   </td>
                   <td className="px-4 py-[13px] border border-slate-100">
-                    <span className={`inline-flex px-2.5 py-0.5 rounded-md text-[11px] font-semibold border ${getStatusColor(p.status)}`}>
+                    <span className={`inline-flex px-2.5 py-0.5 rounded-md text-xs font-semibold border ${getStatusColor(p.status)}`}>
                       {getStatusLabel(p.status)}
                     </span>
                   </td>
                   <td className="px-4 py-[13px] border border-slate-100">
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[11px] text-slate-400 font-mono truncate max-w-[100px]">
+                      <span className="text-[10px] text-slate-400 font-mono truncate max-w-[100px]">
                         /register?programId={p.id.slice(0, 8)}...
                       </span>
                       <button
@@ -384,7 +384,7 @@ export default function AdminProgramsPage() {
               ))}
               {!isLoading && !data?.data?.length && (
                 <tr>
-                  <td colSpan={8} className="px-4 py-14 text-center text-sm text-slate-400 border border-slate-100">
+                  <td colSpan={8} className="px-4 py-14 text-center text-xs text-slate-400 border border-slate-100">
                     Belum ada program. Klik "Tambah Program" untuk membuat program baru.
                   </td>
                 </tr>
@@ -400,10 +400,10 @@ export default function AdminProgramsPage() {
               Total <span className="font-semibold text-slate-700">{data.pagination.total}</span> program
             </p>
             <div className="flex items-center gap-2">
-              <Button size="sm" variant="outline" className="h-7 rounded border-slate-200 text-slate-500 text-[11px]"
+              <Button size="sm" variant="outline" className="h-7 rounded border-slate-200 text-slate-500 text-xs"
                 disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Sebelumnya</Button>
               <span className="text-xs font-semibold text-slate-700 bg-slate-50 h-7 w-10 flex items-center justify-center rounded border border-slate-200">{page}</span>
-              <Button size="sm" variant="outline" className="h-7 rounded border-slate-200 text-slate-500 text-[11px]"
+              <Button size="sm" variant="outline" className="h-7 rounded border-slate-200 text-slate-500 text-xs"
                 disabled={page >= data.pagination.totalPages} onClick={() => setPage(p => p + 1)}>Selanjutnya</Button>
             </div>
           </div>

@@ -8,7 +8,7 @@ export const getAdminDashboard = catchAsync(async (req: Request, res: Response) 
   const customEnd = req.query.endDate as string | undefined;
 
   let startDate: Date;
-  let groupFormat: 'month' | 'week' = 'month';
+  let groupFormat: string = 'month';
   const now = new Date();
 
   if (period === 'week') {
@@ -37,6 +37,8 @@ export const getAdminDashboard = catchAsync(async (req: Request, res: Response) 
     paymentStats,
     recentApplications,
     commissionStats,
+    topPayments,
+    topCommissions,
   ] = await Promise.all([
     prisma.candidate.count(),
     prisma.program.count({ where: { status: 'AKTIF' } }),
@@ -58,6 +60,14 @@ export const getAdminDashboard = catchAsync(async (req: Request, res: Response) 
     prisma.commission.aggregate({
       _sum: { amount: true },
       where: { status: { in: ['PENDING', 'APPROVED'] } },
+    }),
+    prisma.payment.findMany({
+      where: { status: 'VALID', verifiedAt: dateFilter },
+      select: { amount: true, application: { select: { program: { select: { id: true, name: true } } } } },
+    }),
+    prisma.commission.findMany({
+      where: { status: { in: ['APPROVED', 'PAID'] }, createdAt: dateFilter },
+      select: { amount: true, affiliate: { select: { id: true, name: true, code: true } } },
     }),
   ]);
 
@@ -92,6 +102,38 @@ export const getAdminDashboard = catchAsync(async (req: Request, res: Response) 
     revenue: number;
     commission: number;
   }
+
+  // Top Programs by Revenue
+  const programRevenueMap = new Map<string, { id: string; name: string; totalRevenue: number; totalSales: number }>();
+  for (const p of topPayments) {
+    const prog = p.application.program;
+    const key = prog.id;
+    if (!programRevenueMap.has(key)) {
+      programRevenueMap.set(key, { id: prog.id, name: prog.name, totalRevenue: 0, totalSales: 0 });
+    }
+    const item = programRevenueMap.get(key)!;
+    item.totalRevenue += Number(p.amount);
+    item.totalSales += 1;
+  }
+  const topPrograms = Array.from(programRevenueMap.values())
+    .sort((a, b) => b.totalRevenue - a.totalRevenue)
+    .slice(0, 10);
+
+  // Top Affiliates by Commission
+  const affiliateStatsMap = new Map<string, { id: string; name: string; code: string; totalCommission: number; totalCommissions: number }>();
+  for (const c of topCommissions) {
+    const aff = c.affiliate;
+    const key = aff.id;
+    if (!affiliateStatsMap.has(key)) {
+      affiliateStatsMap.set(key, { id: aff.id, name: aff.name || aff.code, code: aff.code, totalCommission: 0, totalCommissions: 0 });
+    }
+    const item = affiliateStatsMap.get(key)!;
+    item.totalCommission += Number(c.amount);
+    item.totalCommissions += 1;
+  }
+  const topAffiliates = Array.from(affiliateStatsMap.values())
+    .sort((a, b) => b.totalCommission - a.totalCommission)
+    .slice(0, 10);
 
   const statsMap = new Map<string, StatItem>();
 
@@ -186,6 +228,27 @@ export const getAdminDashboard = catchAsync(async (req: Request, res: Response) 
     ];
   }
 
+  // Demo top programs & affiliates when empty
+  const finalTopPrograms = isDbEmpty
+    ? [
+        { id: '1', name: 'Program Tokutei Ginou Jepang 2024', totalRevenue: 125000000, totalSales: 10 },
+        { id: '2', name: 'Program EPS-TOPIK Korea 2024', totalRevenue: 85000000, totalSales: 10 },
+        { id: '3', name: 'Magang Jerman - Hospitality & Kuliner', totalRevenue: 45000000, totalSales: 3 },
+        { id: '4', name: 'Program Tokutei Ginou Jepang 2025', totalRevenue: 37500000, totalSales: 3 },
+        { id: '5', name: 'Program EPS-TOPIK Korea 2025', totalRevenue: 25500000, totalSales: 3 },
+      ]
+    : topPrograms;
+
+  const finalTopAffiliates = isDbEmpty
+    ? [
+        { id: '1', name: 'John Affiliate', code: 'AFF001', totalCommission: 5000000, totalCommissions: 10 },
+        { id: '2', name: 'Sarah Wijaya', code: 'AFF002', totalCommission: 3500000, totalCommissions: 7 },
+        { id: '3', name: 'Andi Pratama', code: 'AFF003', totalCommission: 2100000, totalCommissions: 5 },
+        { id: '4', name: 'Dewi Lestari', code: 'AFF004', totalCommission: 1500000, totalCommissions: 3 },
+        { id: '5', name: 'Budi Hartono', code: 'AFF005', totalCommission: 1000000, totalCommissions: 2 },
+      ]
+    : topAffiliates;
+
   return sendSuccess(res, {
     kpi: {
       totalCandidates,
@@ -199,6 +262,8 @@ export const getAdminDashboard = catchAsync(async (req: Request, res: Response) 
     recentApplications,
     monthlyStats,
     statusStats,
+    topPrograms: finalTopPrograms,
+    topAffiliates: finalTopAffiliates,
     isDemo: isDbEmpty,
   });
 });

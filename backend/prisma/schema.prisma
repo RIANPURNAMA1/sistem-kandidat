@@ -327,6 +327,7 @@ model Affiliate {
   totalRegistrations Int      @default(0)
   totalPaid          Int      @default(0)
   totalCommission    Decimal  @db.Decimal(15, 2) @default(0)
+  points             Int      @default(0)
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
@@ -336,6 +337,7 @@ model Affiliate {
   commissions Commission[]
   withdrawals Withdrawal[]
   programs    AffiliateProgram[]
+  redemptions RewardRedemption[]
 
   @@map("affiliates")
 }
@@ -539,4 +541,50 @@ model FollowUpLog {
   candidate       Candidate          @relation(fields: [candidateId], references: [id])
 
   @@map("follow_up_logs")
+}
+
+model Reward {
+  id              String   @id @default(uuid())
+  name            String
+  description     String   @db.Text
+  image           String?
+  pointsRequired  Int
+  stock           Int?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  redemptions     RewardRedemption[]
+
+  @@map("rewards")
+}
+
+model RewardRedemption {
+  id          String   @id @default(uuid())
+  affiliateId String
+  rewardId    String
+  pointsSpent Int
+  status      String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  affiliate   Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  reward      Reward    @relation(fields: [rewardId], references: [id], onDelete: Cascade)
+
+  @@map("reward_redemptions")
+}
+
+model CheckoutSetting {
+  id         String   @id @default(uuid())
+  title      String
+  programIds Json
+  template   String   @default("default")
+  fields     Json
+  slug       String   @unique
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("checkout_settings")
 }

@@ -12,6 +12,8 @@ import aiRoutes from './aiRoutes';
 import reportRoutes from './reportRoutes';
 import couponRoutes from './couponRoutes';
 import followUpRoutes from './followUpRoutes';
+import rewardRoutes from './rewardRoutes';
+import checkoutRoutes from './checkoutRoutes';
 
 export const router = Router();
 
@@ -28,3 +30,5 @@ router.use('/ai', aiRoutes);
 router.use('/reports', reportRoutes);
 router.use('/coupons', couponRoutes);
 router.use('/follow-ups', followUpRoutes);
+router.use('/rewards', rewardRoutes);
+router.use('/checkout', checkoutRoutes);

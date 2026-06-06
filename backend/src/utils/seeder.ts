@@ -206,6 +206,7 @@ async function main() {
     { key: 'site_address', value: 'Jl. Sudirman No. 123, Jakarta Pusat', group: 'GENERAL' },
     { key: 'ocr_auto_verify_threshold', value: '85', group: 'OCR' },
     { key: 'affiliate_min_withdrawal', value: '500000', group: 'AFFILIATE' },
+    { key: 'affiliate_default_commission', value: '100000', group: 'AFFILIATE' },
     { key: 'bank_name', value: 'BCA', group: 'PAYMENT' },
     { key: 'bank_account', value: '1234567890', group: 'PAYMENT' },
     { key: 'bank_holder', value: 'PT KerjaNusantara Indonesia', group: 'PAYMENT' },
@@ -217,6 +218,22 @@ async function main() {
       update: {},
       create: s,
     });
+  }
+
+  // Rewards
+  const rewards = [
+    { name: 'Voucher Belanja 50rb', description: 'Voucher belanja senilai Rp50.000 yang bisa digunakan di marketplace favoritmu.', pointsRequired: 10, stock: 50 },
+    { name: 'Pulsa 25rb', description: 'Pulsa all operator senilai Rp25.000.', pointsRequired: 5, stock: 100 },
+    { name: 'Voucher Belanja 100rb', description: 'Voucher belanja senilai Rp100.000 untuk marketplace favoritmu.', pointsRequired: 20, stock: 25 },
+    { name: 'Gratis Biaya Pendaftaran Program', description: 'Biaya pendaftaran program kerja GRATIS untukmu atau keluargamu.', pointsRequired: 50, stock: null },
+    { name: 'Cashback 500rb', description: 'Cashback Rp500.000 yang ditransfer langsung ke rekeningmu.', pointsRequired: 100, stock: 10 },
+  ];
+
+  for (const r of rewards) {
+    const existing = await prisma.reward.findFirst({ where: { name: r.name } });
+    if (!existing) {
+      await prisma.reward.create({ data: r });
+    }
   }
 
   console.log('✅ Seeding complete!');

@@ -200,7 +200,7 @@ export default function RegisterPage() {
 
   if (registered) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background selection:bg-primary/20 p-4 sm:p-8">
+      <div className="min-h-screen flex items-center justify-center bg-[#009ce1] selection:bg-primary/20 p-4 sm:p-8">
         <div className="w-full max-w-[420px] animate-in fade-in slide-in-from-bottom-4 duration-700 text-center">
           <div className="flex flex-col items-center">
             <div className="h-20 w-20 rounded-full bg-emerald-100 flex items-center justify-center mb-6">

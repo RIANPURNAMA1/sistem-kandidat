@@ -85,12 +85,12 @@ export const createBanner = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const updateBanner = catchAsync(async (req: Request, res: Response) => {
-  const banner = await prisma.banner.update({ where: { id: req.params.id }, data: req.body });
+  const banner = await prisma.banner.update({ where: { id: String(req.params.id) }, data: req.body });
   return sendSuccess(res, banner, 'Banner berhasil diperbarui');
 });
 
 export const deleteBanner = catchAsync(async (req: Request, res: Response) => {
-  await prisma.banner.delete({ where: { id: req.params.id } });
+  await prisma.banner.delete({ where: { id: String(req.params.id) } });
   return sendSuccess(res, null, 'Banner berhasil dihapus');
 });
 
@@ -109,7 +109,7 @@ export const createTestimonial = catchAsync(async (req: Request, res: Response) 
 });
 
 export const updateTestimonial = catchAsync(async (req: Request, res: Response) => {
-  const item = await prisma.testimonial.update({ where: { id: req.params.id }, data: req.body });
+  const item = await prisma.testimonial.update({ where: { id: String(req.params.id) }, data: req.body });
   return sendSuccess(res, item, 'Testimoni berhasil diperbarui');
 });
 
@@ -128,7 +128,7 @@ export const createFAQ = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const updateFAQ = catchAsync(async (req: Request, res: Response) => {
-  const faq = await prisma.fAQ.update({ where: { id: req.params.id }, data: req.body });
+  const faq = await prisma.fAQ.update({ where: { id: String(req.params.id) }, data: req.body });
   return sendSuccess(res, faq, 'FAQ berhasil diperbarui');
 });
 
@@ -185,8 +185,62 @@ export const createCategory = catchAsync(async (req: Request, res: Response) => 
 });
 
 export const updateCategory = catchAsync(async (req: Request, res: Response) => {
-  const cat = await prisma.programCategory.update({ where: { id: req.params.id }, data: req.body });
+  const cat = await prisma.programCategory.update({ where: { id: String(req.params.id) }, data: req.body });
   return sendSuccess(res, cat, 'Kategori berhasil diperbarui');
+});
+
+// Payment Settings
+const PAYMENT_KEYS = ['bank_name', 'bank_account', 'bank_holder'];
+
+export const getPaymentSettings = catchAsync(async (_req: Request, res: Response) => {
+  const settings = await prisma.setting.findMany({
+    where: { group: 'PAYMENT' },
+  });
+  const map: Record<string, string> = {};
+  settings.forEach(s => { map[s.key] = s.value; });
+  return sendSuccess(res, map);
+});
+
+export const updatePaymentSettings = catchAsync(async (req: Request, res: Response) => {
+  const updates = req.body as Record<string, string>;
+  await Promise.all(
+    Object.entries(updates).map(([key, value]) => {
+      if (!PAYMENT_KEYS.includes(key)) return Promise.resolve();
+      return prisma.setting.upsert({
+        where: { key },
+        create: { key, value, group: 'PAYMENT' },
+        update: { value },
+      });
+    })
+  );
+  return sendSuccess(res, null, 'Pengaturan rekening berhasil disimpan');
+});
+
+// Affiliate Settings
+const AFFILIATE_KEYS = ['affiliate_min_withdrawal', 'affiliate_default_commission'];
+
+export const getAffiliateSettings = catchAsync(async (_req: Request, res: Response) => {
+  const settings = await prisma.setting.findMany({
+    where: { group: 'AFFILIATE' },
+  });
+  const map: Record<string, string> = {};
+  settings.forEach(s => { map[s.key] = s.value; });
+  return sendSuccess(res, map);
+});
+
+export const updateAffiliateSettings = catchAsync(async (req: Request, res: Response) => {
+  const updates = req.body as Record<string, string>;
+  await Promise.all(
+    Object.entries(updates).map(([key, value]) => {
+      if (!AFFILIATE_KEYS.includes(key)) return Promise.resolve();
+      return prisma.setting.upsert({
+        where: { key },
+        create: { key, value, group: 'AFFILIATE' },
+        update: { value },
+      });
+    })
+  );
+  return sendSuccess(res, null, 'Pengaturan afiliasi berhasil disimpan');
 });
 
 // WhatsApp Settings

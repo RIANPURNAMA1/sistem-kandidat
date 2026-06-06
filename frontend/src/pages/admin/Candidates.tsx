@@ -81,10 +81,10 @@ export default function AdminCandidates() {
         {/* ── Toolbar Atas ── */}
         <div className="px-5 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <h2 className="text-[17px] font-semibold text-slate-800">Candidates</h2>
+            <h2 className="text-xs font-semibold text-slate-800">Kandidat</h2>
 
             {/* Pagination */}
-            <span className="text-sm text-slate-400">
+            <span className="text-xs text-slate-400">
               {page} of {data?.pagination?.totalPages || 1}
             </span>
             <div className="flex border border-slate-200 rounded-lg overflow-hidden bg-slate-50">
@@ -125,7 +125,7 @@ export default function AdminCandidates() {
           <div className="flex items-center gap-2 relative">
             <div className="relative">
               <Button variant="outline" size="sm"
-                className={`h-9 text-sm font-medium rounded-lg ${showFilters ? 'bg-slate-800 text-white border-slate-800' : 'border-slate-200 text-slate-600'}`}
+                className={`h-9 text-xs font-medium rounded-lg ${showFilters ? 'bg-slate-800 text-white border-slate-800' : 'border-slate-200 text-slate-600'}`}
                 onClick={() => { setShowFilters(!showFilters); setShowManage(false) }}>
                 <Filter className="h-3.5 w-3.5 mr-1.5" /> Filters
               </Button>
@@ -157,11 +157,11 @@ export default function AdminCandidates() {
                         className="h-9 text-xs rounded-lg border-slate-200 w-40" />
                     </div>
                     <div className="flex gap-2 items-center">
-                      <Button size="sm" className="h-9 text-xs rounded-lg"
+                      <Button size="sm" className="h-9 text-xs"
                         onClick={() => { setFilterStatus(''); setFilterStart(''); setFilterEnd(''); setPage(1) }}>
                         Reset
                       </Button>
-                      <Button size="sm" variant="outline" className="h-9 text-xs rounded-lg border-slate-200"
+                      <Button size="sm" variant="outline" className="h-9 text-xs border-slate-200"
                         onClick={() => { setShowFilters(false); setPage(1) }}>
                         Terapkan
                       </Button>
@@ -173,7 +173,7 @@ export default function AdminCandidates() {
 
             {selected.size > 0 && (
               <Button variant="outline" size="sm"
-                className="h-9 text-sm font-medium border-red-200 text-red-600 rounded-lg hover:bg-red-50"
+                className="h-9 text-xs font-medium border-red-200 text-red-600 rounded-lg hover:bg-red-50"
                 onClick={async () => {
                   for (const id of selected) {
                     await api.delete(`/candidates/${id}`).catch(() => {})
@@ -188,7 +188,7 @@ export default function AdminCandidates() {
 
             <div className="relative">
               <Button variant="outline" size="sm"
-                className="h-9 text-sm font-medium border-slate-200 text-slate-600 rounded-lg"
+                className="h-9 text-xs font-medium border-slate-200 text-slate-600 rounded-lg"
                 onClick={() => { setShowManage(!showManage); setShowFilters(false) }}>
                 <SlidersHorizontal className="h-3.5 w-3.5 mr-1.5" /> Manage
               </Button>
@@ -246,7 +246,7 @@ export default function AdminCandidates() {
               <button
                 key={tab}
                 onClick={() => { setActiveTab(tab); setPage(1) }}
-                className={`px-4 py-1.5 rounded-full text-[13px] font-medium transition-colors whitespace-nowrap ${activeTab === tab
+                className={`px-4 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap ${activeTab === tab
                   ? 'bg-indigo-50 text-indigo-600 border border-indigo-100'
                   : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
                   }`}
@@ -260,7 +260,7 @@ export default function AdminCandidates() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
             <Input
               placeholder="Search..."
-              className="pl-9 h-9 w-52 rounded-lg text-[13px] border-slate-200 bg-slate-50 shadow-none
+              className="pl-9 h-9 w-52 rounded-lg text-xs border-slate-200 bg-slate-50 shadow-none
                          focus-visible:ring-1 focus-visible:ring-indigo-100 focus-visible:border-indigo-300"
               value={search}
               onChange={e => { setSearch(e.target.value); setPage(1) }}
@@ -270,7 +270,7 @@ export default function AdminCandidates() {
 
         {/* ── Table ── */}
         <div className="overflow-x-auto">
-          <table className="w-full text-sm border-collapse">
+          <table className="w-full text-xs border-collapse">
             <thead>
               <tr>
                 <th className="w-11 pl-5 py-3.5 text-center border border-slate-100 bg-slate-50/50">
@@ -281,27 +281,27 @@ export default function AdminCandidates() {
                 </th>
                 {/* Kolom dengan ikon kecil seperti gambar */}
                 <th className="px-4 py-3.5 text-left border border-slate-100 bg-slate-50/50">
-                  <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                    <Grid className="h-3 w-3" /> Nama Lengkap
-                  </span>
+                      <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                        <Grid className="h-3 w-3" /> Nama Lengkap
+                      </span>
                 </th>
                 <th className="px-4 py-3.5 text-left border border-slate-100 bg-slate-50/50">
-                  <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                  <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
                     Telepon
                   </span>
                 </th>
                 <th className="px-4 py-3.5 text-left border border-slate-100 bg-slate-50/50">
-                  <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                  <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
                     Affiliate
                   </span>
                 </th>
                 <th className="px-4 py-3.5 text-left border border-slate-100 bg-slate-50/50">
-                  <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                  <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
                     <Clock className="h-3 w-3" /> Terdaftar
                   </span>
                 </th>
                 <th className="px-4 py-3.5 text-center border border-slate-100 bg-slate-50/50">
-                  <span className="flex items-center justify-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                  <span className="flex items-center justify-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
                     <Activity className="h-3 w-3" /> Status
                   </span>
                 </th>
@@ -335,7 +335,16 @@ export default function AdminCandidates() {
                   </td>
                   <td className="px-4 py-[13px] border border-slate-100">
                     <div className="font-semibold text-slate-800">{c.fullName}</div>
-                    <div className="text-xs text-slate-400 mt-0.5">{c.nik}</div>
+                    <div className="text-[11px] text-slate-400 mt-0.5">{c.nik}</div>
+                    {c.applications?.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-1.5">
+                        {c.applications.map((a: any) => (
+                          <span key={a.id} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-600 border border-indigo-100 text-[10px] font-medium">
+                            {a.program?.name || a.programId}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </td>
                   <td className="px-4 py-[13px] text-slate-600 border border-slate-100">{c.phone}</td>
                   <td className="px-4 py-[13px] border border-slate-100">
@@ -345,10 +354,10 @@ export default function AdminCandidates() {
                         <span className="text-xs text-slate-400">{c.affiliate.code}</span>
                       </div>
                     ) : (
-                      <span className="text-slate-300 italic text-sm">—</span>
+                      <span className="text-slate-300 italic text-xs">—</span>
                     )}
                   </td>
-                  <td className="px-4 py-[13px] text-slate-500 text-[13px] border border-slate-100">
+                  <td className="px-4 py-[13px] text-slate-500 text-xs border border-slate-100">
                     {formatDate(c.createdAt)}
                   </td>
                   <td className="px-4 py-[13px] text-center border border-slate-100">
@@ -359,6 +368,14 @@ export default function AdminCandidates() {
                   </td>
                   <td className="px-4 py-[13px] border border-slate-100">
                     <div className="flex justify-end items-center gap-1">
+                      {c.applications?.map((a: any) => a.payment?.id ? (
+                        <Link key={a.payment.id} to={`/admin/payments/${a.payment.id}/invoice`}>
+                          <Button size="icon" variant="ghost"
+                            className="h-8 w-8 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50">
+                            <DollarSign className="h-4 w-4" />
+                          </Button>
+                        </Link>
+                      ) : null)}
                       <Link to={`/admin/candidates/${c.id}`}>
                         <Button size="icon" variant="ghost"
                           className="h-8 w-8 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50">
@@ -397,7 +414,7 @@ export default function AdminCandidates() {
               {/* Empty state */}
               {!isLoading && !data?.data?.length && (
                 <tr>
-                  <td colSpan={7} className="px-5 py-14 text-center text-sm text-slate-400 border border-slate-100">
+                  <td colSpan={7} className="px-5 py-14 text-center text-xs text-slate-400 border border-slate-100">
                     Tidak ada data kandidat ditemukan.
                   </td>
                 </tr>

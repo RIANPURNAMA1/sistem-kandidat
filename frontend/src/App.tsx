@@ -8,6 +8,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout'
 import LoginPage from '@/pages/auth/LoginPage'
 import RegisterPage from '@/pages/auth/RegisterPage'
 import RegisterAffiliatePage from '@/pages/auth/RegisterAffiliatePage'
+import CheckoutFormPage from '@/pages/checkout/CheckoutFormPage'
 
 // Admin pages
 import AdminDashboard from '@/pages/admin/Dashboard'
@@ -22,6 +23,7 @@ import AdminFollowUpSend from '@/pages/admin/FollowUpSend'
 import AdminFinancialReport from '@/pages/admin/FinancialReport'
 import AdminSettings from '@/pages/admin/Settings'
 import AdminAuditLogs from '@/pages/admin/AuditLogs'
+import AdminRewards from '@/pages/admin/Rewards'
 import AdminCandidateDetail from '@/pages/admin/CandidateDetail'
 import InvoicePage from '@/pages/candidate/Invoice'
 
@@ -36,6 +38,7 @@ import CandidateInvoice from '@/pages/candidate/Invoice'
 // Affiliate pages
 import AffiliateDashboard from '@/pages/affiliate/Dashboard'
 import AffiliateLeaderboard from '@/pages/affiliate/Leaderboard'
+import AffiliateRewards from '@/pages/affiliate/Rewards'
 // Finance pages
 import FinanceDashboard from '@/pages/finance/Dashboard'
 import FinancePayments from '@/pages/finance/Payments'
@@ -71,6 +74,7 @@ export default function App() {
         <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/register/affiliate" element={<RegisterAffiliatePage />} />
+        <Route path="/checkout/:slug" element={<CheckoutFormPage />} />
 
         {/* Admin */}
         <Route path="/admin" element={
@@ -88,6 +92,7 @@ export default function App() {
           <Route path="reports" element={<AdminFinancialReport />} />
           <Route path="settings" element={<AdminSettings />} />
           <Route path="audit-logs" element={<AdminAuditLogs />} />
+          <Route path="rewards" element={<AdminRewards />} />
           <Route path="coupons" element={<AdminCoupons />} />
           <Route path="follow-up/categories" element={<AdminFollowUpCategories />} />
           <Route path="follow-up/templates" element={<AdminFollowUpTemplates />} />
@@ -130,6 +135,7 @@ export default function App() {
         }>
           <Route index element={<AffiliateDashboard />} />
           <Route path="leaderboard" element={<AffiliateLeaderboard />} />
+          <Route path="rewards" element={<AffiliateRewards />} />
         </Route>
 
         <Route path="/unauthorized" element={

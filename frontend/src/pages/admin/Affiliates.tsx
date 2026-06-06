@@ -83,8 +83,8 @@ export default function AdminAffiliatesPage() {
         {/* ── Toolbar Atas ── */}
         <div className="px-5 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <h2 className="text-[17px] font-semibold text-slate-800">Manajemen Affiliate</h2>
-            <span className="text-sm text-slate-400">
+            <h2 className="text-xs font-semibold text-slate-800">Manajemen Affiliate</h2>
+            <span className="text-xs text-slate-400">
               {page} of {data?.pagination?.totalPages || 1}
             </span>
             <div className="flex border border-slate-200 rounded-lg overflow-hidden bg-slate-50">
@@ -109,7 +109,7 @@ export default function AdminAffiliatesPage() {
           <div className="flex items-center gap-2">
             <div className="relative">
               <Button variant="outline" size="sm"
-                className="h-9 text-sm font-medium border-slate-200 text-slate-600 rounded-lg"
+                className="h-9 text-xs font-medium border-slate-200 text-slate-600 rounded-lg"
                 onClick={() => setShowManage(!showManage)}>
                 <SlidersHorizontal className="h-3.5 w-3.5 mr-1.5" /> Manage
               </Button>
@@ -153,7 +153,7 @@ export default function AdminAffiliatesPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
             <Input
               placeholder="Cari affiliate..."
-              className="pl-9 h-9 w-52 rounded-lg text-[13px] border-slate-200 bg-slate-50 shadow-none focus-visible:ring-1 focus-visible:ring-indigo-100 focus-visible:border-indigo-300"
+              className="pl-9 h-9 w-52 rounded-lg text-xs border-slate-200 bg-slate-50 shadow-none focus-visible:ring-1 focus-visible:ring-indigo-100 focus-visible:border-indigo-300"
               value={search}
               onChange={e => { setSearch(e.target.value); setPage(1) }}
             />
@@ -162,29 +162,29 @@ export default function AdminAffiliatesPage() {
 
         {/* ── Table ── */}
         <div className="overflow-x-auto">
-          <table className="w-full text-sm border-collapse">
+          <table className="w-full text-xs border-collapse">
             <thead>
               <tr>
                 <th className="w-10 px-4 py-3.5 text-center border border-slate-100 bg-slate-50/50"></th>
                 <th className="px-4 py-3.5 text-left border border-slate-100 bg-slate-50/50">
-                  <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                  <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
                     <Grid className="h-3 w-3" /> Kode
                   </span>
                 </th>
                 <th className="px-4 py-3.5 text-left border border-slate-100 bg-slate-50/50">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Email</span>
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Email</span>
                 </th>
                 <th className="px-4 py-3.5 text-left border border-slate-100 bg-slate-50/50">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Klik</span>
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Klik</span>
                 </th>
                 <th className="px-4 py-3.5 text-left border border-slate-100 bg-slate-50/50">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Registrasi</span>
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Registrasi</span>
                 </th>
                 <th className="px-4 py-3.5 text-left border border-slate-100 bg-slate-50/50">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Paid</span>
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Paid</span>
                 </th>
                 <th className="px-4 py-3.5 text-left border border-slate-100 bg-slate-50/50">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Total Komisi</span>
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Total Komisi</span>
                 </th>
               </tr>
             </thead>
@@ -220,12 +220,12 @@ export default function AdminAffiliatesPage() {
                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Program Affiliate Aktif</p>
                           <div className="grid gap-3">
                             {expandedPrograms.length === 0 && (
-                              <p className="text-sm text-slate-400 italic">Belum ada program yang diaktifkan untuk affiliate ini.</p>
+                              <p className="text-xs text-slate-400 italic">Belum ada program yang diaktifkan untuk affiliate ini.</p>
                             )}
                             {expandedPrograms.map((p: any) => (
                               <div key={p.id} className="flex items-center justify-between bg-white border border-slate-200 rounded-sm px-4 py-3">
                                 <div>
-                                  <p className="text-sm font-semibold text-slate-800">{p.name}</p>
+                                  <p className="text-xs font-semibold text-slate-800">{p.name}</p>
                                   {p.fee && <p className="text-xs font-medium text-indigo-600">{formatCurrency(p.fee)}</p>}
                                 </div>
                                 <div className="flex items-center gap-3">
@@ -234,7 +234,7 @@ export default function AdminAffiliatesPage() {
                                     <input
                                       readOnly
                                       value={`/register?ref=${a.code}&programId=${p.id}`}
-                                      className="bg-transparent text-[11px] font-mono text-slate-600 border-0 outline-none w-52"
+                                      className="bg-transparent text-[10px] font-mono text-slate-600 border-0 outline-none w-52"
                                     />
                                   </div>
                                   <Button
@@ -265,7 +265,7 @@ export default function AdminAffiliatesPage() {
                                 <select
                                   value={selectedProgramId}
                                   onChange={(e) => setSelectedProgramId(e.target.value)}
-                                  className="flex-1 h-9 rounded border border-slate-200 px-3 text-sm outline-none focus:border-indigo-400 transition-colors"
+                                  className="flex-1 h-9 rounded border border-slate-200 px-3 text-xs outline-none focus:border-indigo-400 transition-colors"
                                 >
                                   <option value="">Pilih program untuk ditambahkan...</option>
                                   {availableForExpanded.map((p: any) => (
@@ -275,20 +275,20 @@ export default function AdminAffiliatesPage() {
                                 <div className="flex items-center gap-2">
                                   <Button
                                     size="sm"
-                                    className="h-9 rounded px-4"
+                                    className="h-9 rounded px-4 text-xs"
                                     disabled={!selectedProgramId || addMutation.isPending}
                                     onClick={() => addMutation.mutate({ affiliateId: a.id, programId: selectedProgramId })}
                                   >
                                     {addMutation.isPending ? 'Menambahkan...' : 'Tambah'}
                                   </Button>
-                                  <Button size="sm" variant="ghost" className="h-9 rounded px-4" onClick={() => { setShowAddProgram(null); setSelectedProgramId('') }}>
+                                  <Button size="sm" variant="ghost" className="h-9 rounded px-4 text-xs" onClick={() => { setShowAddProgram(null); setSelectedProgramId('') }}>
                                     Batal
                                   </Button>
                                 </div>
                               </div>
                             ) : (
-                              <Button size="sm" variant="outline" className="h-9 rounded border-slate-200" onClick={() => setShowAddProgram(a.id)}>
-                                <Plus className="h-4 w-4 mr-2" /> Aktifkan Program Baru
+                              <Button size="sm" variant="outline" className="h-8 rounded border-slate-200 text-xs" onClick={() => setShowAddProgram(a.id)}>
+                                <Plus className="h-3.5 w-3.5 mr-1.5" /> Aktifkan Program Baru
                               </Button>
                             )}
                           </div>
@@ -300,7 +300,7 @@ export default function AdminAffiliatesPage() {
               ))}
               {!isLoading && !data?.data?.length && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-14 text-center text-sm text-slate-400 border border-slate-100">
+                  <td colSpan={7} className="px-4 py-14 text-center text-xs text-slate-400 border border-slate-100">
                     Tidak ada data affiliate ditemukan.
                   </td>
                 </tr>
@@ -316,10 +316,10 @@ export default function AdminAffiliatesPage() {
               Total <span className="font-semibold text-slate-700">{data.pagination.total}</span> affiliate
             </p>
             <div className="flex items-center gap-2">
-              <Button size="sm" variant="outline" className="h-7 rounded border-slate-200 text-slate-500 text-[11px]"
+              <Button size="sm" variant="outline" className="h-7 rounded border-slate-200 text-slate-500 text-xs"
                 disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Sebelumnya</Button>
               <span className="text-xs font-semibold text-slate-700 bg-slate-50 h-7 w-10 flex items-center justify-center rounded border border-slate-200">{page}</span>
-              <Button size="sm" variant="outline" className="h-7 rounded border-slate-200 text-slate-500 text-[11px]"
+              <Button size="sm" variant="outline" className="h-7 rounded border-slate-200 text-slate-500 text-xs"
                 disabled={page >= data.pagination.totalPages} onClick={() => setPage(p => p + 1)}>Selanjutnya</Button>
             </div>
           </div>

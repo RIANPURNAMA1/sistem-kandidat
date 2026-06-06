@@ -129,6 +129,7 @@ export const verifyPayment = catchAsync(async (req: Request, res: Response) => {
           data: {
             totalPaid: { increment: 1 },
             totalCommission: { increment: commissionAmount },
+            points: { increment: 1 },
           },
         });
       }

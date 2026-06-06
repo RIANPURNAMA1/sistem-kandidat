@@ -150,7 +150,7 @@ export default function AIChat() {
       {/* Floating button */}
       <button
         onClick={() => setOpen(!open)}
-        className="fixed bottom-6 right-6 z-50 h-12 w-12 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg hover:shadow-xl flex items-center justify-center transition-all active:scale-90"
+        className="fixed bottom-6 right-6 z-50 h-12 w-12 rounded-full bg-[#009ce1] hover:bg-[#007bc4] text-white shadow-lg hover:shadow-xl flex items-center justify-center transition-all active:scale-90"
       >
         {open ? <X className="h-5 w-5" /> : <Bot className="h-5 w-5" />}
       </button>
@@ -159,13 +159,13 @@ export default function AIChat() {
       {open && (
         <div className="fixed bottom-20 right-6 z-50 w-[360px] max-w-[calc(100vw-2rem)] h-[520px] max-h-[calc(100vh-10rem)] bg-white rounded-xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden animate-in slide-in-from-bottom-8 fade-in duration-200">
           {/* Header */}
-          <div className="flex items-center gap-2.5 px-4 py-3 bg-indigo-600 text-white">
+          <div className="flex items-center gap-2.5 px-4 py-3 bg-[#009ce1] text-white">
             <Bot className="h-5 w-5" />
             <span className="font-semibold text-sm flex-1">AI Assistant</span>
             <button
               onClick={downloadPDF}
               title="Download PDF"
-              className="h-7 w-7 rounded-md hover:bg-indigo-500 flex items-center justify-center transition-colors"
+              className="h-7 w-7 rounded-md hover:bg-[#007bc4] flex items-center justify-center transition-colors"
             >
               <FileDown className="h-4 w-4" />
             </button>
@@ -178,7 +178,7 @@ export default function AIChat() {
                 <div
                   className={`max-w-[92%] rounded-lg px-3.5 py-2.5 text-sm leading-relaxed ${
                     msg.role === 'user'
-                      ? 'bg-indigo-600 text-white rounded-br-md'
+                      ? 'bg-[#009ce1] text-white rounded-br-md'
                       : 'bg-white border border-gray-200 text-gray-800 rounded-bl-md shadow-sm'
                   }`}
                 >
@@ -212,12 +212,12 @@ export default function AIChat() {
                 onKeyDown={handleKeyDown}
                 placeholder="Tanyakan sesuatu..."
                 disabled={loading}
-                className="flex-1 h-9 rounded-lg border border-gray-300 bg-gray-50 px-3 text-sm outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400/30 disabled:opacity-50"
+                className="flex-1 h-9 rounded-lg border border-gray-300 bg-gray-50 px-3 text-sm outline-none focus:border-[#009ce1] focus:ring-1 focus:ring-[#009ce1]/30 disabled:opacity-50"
               />
               <button
                 onClick={sendMessage}
                 disabled={!input.trim() || loading}
-                className="h-9 w-9 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="h-9 w-9 rounded-lg bg-[#009ce1] hover:bg-[#007bc4] text-white flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 <Send className="h-4 w-4" />
               </button>

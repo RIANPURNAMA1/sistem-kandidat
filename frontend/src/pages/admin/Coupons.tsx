@@ -51,63 +51,63 @@ function CouponFormModal({ isOpen, onClose, coupon, programs }: {
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 shrink-0">
-          <h2 className="text-lg font-bold">{isEdit ? 'Edit Kupon' : 'Tambah Kupon Baru'}</h2>
+          <h2 className="text-sm font-bold">{isEdit ? 'Edit Kupon' : 'Tambah Kupon Baru'}</h2>
           <Button variant="ghost" size="icon" onClick={onClose}><X className="h-4 w-4" /></Button>
         </div>
         <form onSubmit={(e) => { e.preventDefault(); mutate(formData) }} className="flex-1 overflow-y-auto p-6 space-y-4">
           <div className="space-y-1">
-            <Label>Kode Kupon</Label>
-            <Input required value={formData.code} onChange={e => setFormData({...formData, code: e.target.value.toUpperCase()})} placeholder="CONTOH10" />
+            <Label className="text-xs">Kode Kupon</Label>
+            <Input required value={formData.code} onChange={e => setFormData({...formData, code: e.target.value.toUpperCase()})} placeholder="CONTOH10" className="text-xs" />
           </div>
           <div className="space-y-1">
-            <Label>Deskripsi</Label>
-            <Textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} placeholder="Deskripsi kupon (opsional)" />
+            <Label className="text-xs">Deskripsi</Label>
+            <Textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} placeholder="Deskripsi kupon (opsional)" className="text-xs" />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
-              <Label>Tipe Diskon</Label>
-              <Select value={formData.discountType} onChange={e => setFormData({...formData, discountType: e.target.value})}>
+              <Label className="text-xs">Tipe Diskon</Label>
+              <Select value={formData.discountType} onChange={e => setFormData({...formData, discountType: e.target.value})} className="text-xs">
                 <option value="PERCENTAGE">Persentase (%)</option>
                 <option value="FIXED">Nominal Tetap</option>
               </Select>
             </div>
             <div className="space-y-1">
-              <Label>Nilai Diskon</Label>
+              <Label className="text-xs">Nilai Diskon</Label>
               <Input type="number" required value={formData.discountValue} onChange={e => setFormData({...formData, discountValue: e.target.value})}
-                placeholder={formData.discountType === 'PERCENTAGE' ? '10 (10%)' : '50000 (Rp)'} />
+                placeholder={formData.discountType === 'PERCENTAGE' ? '10 (10%)' : '50000 (Rp)'} className="text-xs" />
             </div>
           </div>
           <div className="space-y-1">
-            <Label>Program (opsional)</Label>
-            <Select value={formData.programId} onChange={e => setFormData({...formData, programId: e.target.value})}>
+            <Label className="text-xs">Program (opsional)</Label>
+            <Select value={formData.programId} onChange={e => setFormData({...formData, programId: e.target.value})} className="text-xs">
               <option value="">Semua Program</option>
               {programs.map((p: any) => <option key={p.id} value={p.id}>{p.name}</option>)}
             </Select>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
-              <Label>Min. Pembayaran</Label>
-              <Input type="number" value={formData.minPayment} onChange={e => setFormData({...formData, minPayment: e.target.value})} placeholder="0" />
+              <Label className="text-xs">Min. Pembayaran</Label>
+              <Input type="number" value={formData.minPayment} onChange={e => setFormData({...formData, minPayment: e.target.value})} placeholder="0" className="text-xs" />
             </div>
             <div className="space-y-1">
-              <Label>Maks. Diskon (opsional)</Label>
-              <Input type="number" value={formData.maxDiscount} onChange={e => setFormData({...formData, maxDiscount: e.target.value})} placeholder="Untuk %" />
+              <Label className="text-xs">Maks. Diskon (opsional)</Label>
+              <Input type="number" value={formData.maxDiscount} onChange={e => setFormData({...formData, maxDiscount: e.target.value})} placeholder="Untuk %" className="text-xs" />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
-              <Label>Maks. Pemakaian</Label>
-              <Input type="number" value={formData.maxUses} onChange={e => setFormData({...formData, maxUses: e.target.value})} placeholder="0 = unlimited" />
+              <Label className="text-xs">Maks. Pemakaian</Label>
+              <Input type="number" value={formData.maxUses} onChange={e => setFormData({...formData, maxUses: e.target.value})} placeholder="0 = unlimited" className="text-xs" />
             </div>
             <div className="space-y-1">
-              <Label>Kadaluarsa (opsional)</Label>
-              <Input type="date" value={formData.expiresAt} onChange={e => setFormData({...formData, expiresAt: e.target.value})} />
+              <Label className="text-xs">Kadaluarsa (opsional)</Label>
+              <Input type="date" value={formData.expiresAt} onChange={e => setFormData({...formData, expiresAt: e.target.value})} className="text-xs" />
             </div>
           </div>
         </form>
         <div className="flex justify-end gap-2 px-6 py-4 border-t border-slate-200 shrink-0">
-          <Button type="button" variant="outline" onClick={onClose}>Batal</Button>
-          <Button onClick={() => mutate(formData)} disabled={isPending}>
+          <Button type="button" variant="outline" className="text-xs" onClick={onClose}>Batal</Button>
+          <Button className="text-xs" onClick={() => mutate(formData)} disabled={isPending}>
             {isPending ? <><Loader2 className="h-4 w-4 animate-spin" /> Menyimpan...</> : 'Simpan'}
           </Button>
         </div>
@@ -127,13 +127,13 @@ function DeleteConfirmDialog({ isOpen, onClose, coupon, onConfirm, isPending }: 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6" onClick={e => e.stopPropagation()}>
-        <h2 className="text-lg font-bold mb-2">Konfirmasi</h2>
-        <p className="text-sm text-muted-foreground mb-6">
+        <h2 className="text-sm font-bold mb-2">Konfirmasi</h2>
+        <p className="text-xs text-muted-foreground mb-6">
           Yakin ingin menonaktifkan kupon <strong>{coupon?.code}</strong>?
         </p>
         <div className="flex justify-end gap-2">
-          <Button variant="outline" onClick={onClose} disabled={isPending}>Batal</Button>
-          <Button variant="destructive" onClick={onConfirm} disabled={isPending}>
+          <Button variant="outline" className="text-xs" onClick={onClose} disabled={isPending}>Batal</Button>
+          <Button variant="destructive" className="text-xs" onClick={onConfirm} disabled={isPending}>
             {isPending ? <><Loader2 className="h-4 w-4 animate-spin" /> Memproses...</> : 'Nonaktifkan'}
           </Button>
         </div>
@@ -188,8 +188,8 @@ export default function AdminCouponsPage() {
         {/* ── Toolbar Atas ── */}
         <div className="px-5 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <h2 className="text-[17px] font-semibold text-slate-800">Kupon Diskon</h2>
-            <span className="text-sm text-slate-400">
+            <h2 className="text-xs font-semibold text-slate-800">Kupon Diskon</h2>
+            <span className="text-xs text-slate-400">
               {page} of {data?.pagination?.totalPages || 1}
             </span>
             <div className="flex border border-slate-200 rounded-lg overflow-hidden bg-slate-50">
@@ -214,7 +214,7 @@ export default function AdminCouponsPage() {
           <div className="flex items-center gap-2">
             <div className="relative">
               <Button variant="outline" size="sm"
-                className="h-9 text-sm font-medium border-slate-200 text-slate-600 rounded-lg"
+                className="h-9 text-xs font-medium border-slate-200 text-slate-600 rounded-lg"
                 onClick={() => setShowManage(!showManage)}>
                 <SlidersHorizontal className="h-3.5 w-3.5 mr-1.5" /> Manage
               </Button>
@@ -246,7 +246,7 @@ export default function AdminCouponsPage() {
               )}
               {showManage && <div className="fixed inset-0 z-10" onClick={() => setShowManage(false)} />}
             </div>
-            <Button className="gap-2 h-9 text-sm font-medium rounded-lg" onClick={() => setAddModalOpen(true)}>
+            <Button className="gap-2 h-9 text-xs font-medium" onClick={() => setAddModalOpen(true)}>
               <Plus className="h-3.5 w-3.5" /> Tambah Kupon
             </Button>
           </div>
@@ -261,7 +261,7 @@ export default function AdminCouponsPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
             <Input
               placeholder="Cari kode kupon..."
-              className="pl-9 h-9 w-52 rounded-lg text-[13px] border-slate-200 bg-slate-50 shadow-none focus-visible:ring-1 focus-visible:ring-indigo-100 focus-visible:border-indigo-300"
+              className="pl-9 h-9 w-52 rounded-lg text-xs border-slate-200 bg-slate-50 shadow-none focus-visible:ring-1 focus-visible:ring-indigo-100 focus-visible:border-indigo-300"
               value={search}
               onChange={e => { setSearch(e.target.value); setPage(1) }}
             />
@@ -270,34 +270,34 @@ export default function AdminCouponsPage() {
 
         {/* ── Table ── */}
         <div className="overflow-x-auto">
-          <table className="w-full text-sm border-collapse">
+          <table className="w-full text-xs border-collapse">
             <thead>
               <tr>
                 <th className="px-4 py-3.5 text-left border border-slate-100 bg-slate-50/50">
-                  <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                  <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
                     <Tag className="h-3 w-3" /> Kode
                   </span>
                 </th>
                 <th className="px-4 py-3.5 text-left border border-slate-100 bg-slate-50/50">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Deskripsi</span>
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Deskripsi</span>
                 </th>
                 <th className="px-4 py-3.5 text-left border border-slate-100 bg-slate-50/50">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Diskon</span>
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Diskon</span>
                 </th>
                 <th className="px-4 py-3.5 text-left border border-slate-100 bg-slate-50/50">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Program</span>
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Program</span>
                 </th>
                 <th className="px-4 py-3.5 text-left border border-slate-100 bg-slate-50/50">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Pemakaian</span>
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Pemakaian</span>
                 </th>
                 <th className="px-4 py-3.5 text-left border border-slate-100 bg-slate-50/50">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Kadaluarsa</span>
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Kadaluarsa</span>
                 </th>
                 <th className="px-4 py-3.5 text-left border border-slate-100 bg-slate-50/50">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Status</span>
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Status</span>
                 </th>
                 <th className="px-4 py-3.5 text-right border border-slate-100 bg-slate-50/50">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Aksi</span>
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Aksi</span>
                 </th>
               </tr>
             </thead>
@@ -314,7 +314,7 @@ export default function AdminCouponsPage() {
                 return (
                   <tr key={c.id} className="hover:bg-slate-50/60 transition-colors">
                     <td className="px-4 py-[13px] border border-slate-100">
-                      <span className="font-bold text-indigo-700 font-mono text-sm">{c.code}</span>
+                      <span className="font-bold text-indigo-700 font-mono text-xs">{c.code}</span>
                     </td>
                     <td className="px-4 py-[13px] text-slate-600 border border-slate-100">
                       <span className="text-xs text-slate-500">{c.description || '-'}</span>
@@ -346,7 +346,7 @@ export default function AdminCouponsPage() {
                       ) : <span className="text-slate-400 text-xs">-</span>}
                     </td>
                     <td className="px-4 py-[13px] border border-slate-100">
-                      <span className={`inline-flex px-2.5 py-0.5 rounded-md text-[11px] font-semibold border ${
+                      <span className={`inline-flex px-2.5 py-0.5 rounded-md text-xs font-semibold border ${
                         active ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
                         !c.isActive ? 'bg-slate-100 text-slate-400 border-slate-200' :
                         'bg-red-50 text-red-600 border-red-200'
@@ -379,7 +379,7 @@ export default function AdminCouponsPage() {
               })}
               {!isLoading && !data?.data?.length && (
                 <tr>
-                  <td colSpan={8} className="px-4 py-14 text-center text-sm text-slate-400 border border-slate-100">
+                  <td colSpan={8} className="px-4 py-14 text-center text-xs text-slate-400 border border-slate-100">
                     Belum ada kupon. Klik "Tambah Kupon" untuk membuat kupon baru.
                   </td>
                 </tr>
@@ -395,10 +395,10 @@ export default function AdminCouponsPage() {
               Total <span className="font-semibold text-slate-700">{data.pagination.total}</span> kupon
             </p>
             <div className="flex items-center gap-2">
-              <Button size="sm" variant="outline" className="h-7 rounded border-slate-200 text-slate-500 text-[11px]"
+              <Button size="sm" variant="outline" className="h-7 rounded border-slate-200 text-slate-500 text-xs"
                 disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Sebelumnya</Button>
               <span className="text-xs font-semibold text-slate-700 bg-slate-50 h-7 w-10 flex items-center justify-center rounded border border-slate-200">{page}</span>
-              <Button size="sm" variant="outline" className="h-7 rounded border-slate-200 text-slate-500 text-[11px]"
+              <Button size="sm" variant="outline" className="h-7 rounded border-slate-200 text-slate-500 text-xs"
                 disabled={page >= data.pagination.totalPages} onClick={() => setPage(p => p + 1)}>Selanjutnya</Button>
             </div>
           </div>

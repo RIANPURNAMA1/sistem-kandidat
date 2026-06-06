@@ -274,7 +274,7 @@ ${dataContext.applicationStats.map(s => `- ${s.status}: ${s.count}`).join('\n')}
     const prompt = `${SYSTEM_PROMPT}\n${DATA_BLOCK}\n\nPertanyaan pengguna: ${message}`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.5-flash', 
+      model: 'gemini-2.5-flash', 
       contents: [
         {
           role: 'user',

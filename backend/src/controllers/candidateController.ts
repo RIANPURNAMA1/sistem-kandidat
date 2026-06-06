@@ -64,6 +64,12 @@ export const listCandidates = catchAsync(async (req: Request, res: Response) => 
   if (status === 'active') where.user = { isActive: true };
   else if (status === 'inactive') where.user = { isActive: false };
 
+  // Hanya tampilkan kandidat yang belum memiliki pembayaran
+  // atau semua pembayarannya sudah VALID (terverifikasi)
+  where.payments = {
+    every: { status: 'VALID' },
+  };
+
   const [candidates, total] = await Promise.all([
     prisma.candidate.findMany({
       where,

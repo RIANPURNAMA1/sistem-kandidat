@@ -25,11 +25,11 @@ export default function CandidateDashboard() {
   return (
     <div className="space-y-6">
       {/* Welcome banner - Facebook blue */}
-      <div className="bg-gradient-to-r from-fb-blue to-blue-700 rounded-lg p-6 text-white">
-        <h1 className="text-xl font-bold">
+      <div className="bg-[#009ce1] rounded-lg p-6 text-white">
+        <h1 className="text-sm font-bold">
           Selamat datang, {profile?.fullName || user?.email}
         </h1>
-        <p className="text-blue-200 text-sm mt-1">Pantau status pendaftaran dan dokumen Anda di sini</p>
+        <p className="text-blue-200 text-xs mt-1">Pantau status pendaftaran dan dokumen Anda di sini</p>
       </div>
 
       {/* Alerts */}
@@ -37,7 +37,7 @@ export default function CandidateDashboard() {
         <div className="flex items-center gap-3 p-4 bg-orange-50 border border-orange-200 rounded-lg">
           <AlertCircle className="h-5 w-5 text-orange-500 flex-shrink-0" />
           <div className="flex-1">
-            <p className="text-sm font-medium text-orange-800">Pembayaran Menunggu Upload</p>
+            <p className="text-xs font-medium text-orange-800">Pembayaran Menunggu Upload</p>
             <p className="text-xs text-orange-600">Anda memiliki {pendingPayments} pembayaran yang belum diupload</p>
           </div>
           <Link to="/candidate/payments">
@@ -50,7 +50,7 @@ export default function CandidateDashboard() {
         <div className="flex items-center gap-3 p-4 bg-fb-blue-light border border-fb-blue/20 rounded-lg">
           <AlertCircle className="h-5 w-5 text-fb-blue flex-shrink-0" />
           <div className="flex-1">
-            <p className="text-sm font-medium text-fb-blue">Profil Belum Lengkap</p>
+            <p className="text-xs font-medium text-fb-blue">Profil Belum Lengkap</p>
             <p className="text-xs text-blue-600">Lengkapi profil Anda untuk dapat mendaftar program</p>
           </div>
           <Link to="/candidate/profile">
@@ -67,8 +67,8 @@ export default function CandidateDashboard() {
               <ClipboardList className="h-6 w-6 text-fb-blue" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{applications.length}</p>
-              <p className="text-xs text-muted-foreground">Pendaftaran</p>
+              <p className="text-sm font-bold">{applications.length}</p>
+              <p className="text-[10px] text-muted-foreground">Pendaftaran</p>
             </div>
           </CardContent>
         </Card>
@@ -78,8 +78,8 @@ export default function CandidateDashboard() {
               <FileText className="h-6 w-6 text-green-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{completedDocs}/{documents.length}</p>
-              <p className="text-xs text-muted-foreground">Dokumen Terverifikasi</p>
+              <p className="text-sm font-bold">{completedDocs}/{documents.length}</p>
+              <p className="text-[10px] text-muted-foreground">Dokumen Terverifikasi</p>
             </div>
           </CardContent>
         </Card>
@@ -89,8 +89,8 @@ export default function CandidateDashboard() {
               <CreditCard className="h-6 w-6 text-purple-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold">{applications.filter((a: any) => a.payment?.status === 'VALID').length}</p>
-              <p className="text-xs text-muted-foreground">Pembayaran Valid</p>
+              <p className="text-sm font-bold">{applications.filter((a: any) => a.payment?.status === 'VALID').length}</p>
+              <p className="text-[10px] text-muted-foreground">Pembayaran Valid</p>
             </div>
           </CardContent>
         </Card>
@@ -98,12 +98,12 @@ export default function CandidateDashboard() {
 
       {/* Applications timeline */}
       <Card>
-        <CardHeader><CardTitle>Status Pendaftaran</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-xs">Status Pendaftaran</CardTitle></CardHeader>
         <CardContent>
           {applications.length === 0 ? (
             <div className="text-center py-10">
               <ClipboardList className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
-              <p className="text-muted-foreground mb-4">Belum ada pendaftaran program</p>
+              <p className="text-xs text-muted-foreground mb-4">Belum ada pendaftaran program</p>
               <Link to="/programs"><Button>Lihat Program Tersedia</Button></Link>
             </div>
           ) : (
@@ -112,7 +112,7 @@ export default function CandidateDashboard() {
                 <div key={app.id} className="border border-fb-gray-light rounded-lg p-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold truncate">{app.program?.name}</p>
+                      <p className="text-xs font-semibold truncate">{app.program?.name}</p>
                       <p className="text-xs text-muted-foreground mt-0.5">
                         Didaftarkan: {formatDate(app.submittedAt)}
                       </p>

@@ -14,7 +14,7 @@ function StatCard({ icon: Icon, label, value, color }: any) {
           <Icon className="h-6 w-6 text-white" />
         </div>
         <div>
-          <p className="text-2xl font-black text-slate-900 tracking-tight">{value}</p>
+          <p className="text-sm font-black text-slate-900 tracking-tight">{value}</p>
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{label}</p>
         </div>
       </div>
@@ -65,15 +65,15 @@ export default function AffiliateDashboard() {
   return (
     <div className="space-y-6 pb-12">
       <div>
-        <h1 className="text-2xl font-black text-slate-900 tracking-tight">Dashboard Affiliate</h1>
-        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Pantau performa referral dan komisi Anda</p>
+        <h1 className="text-sm font-black text-slate-900 tracking-tight">Dashboard Affiliate</h1>
+        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Pantau performa referral dan komisi Anda</p>
       </div>
 
       {!affiliate ? (
         <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm">
           <TrendingUp className="h-16 w-16 text-slate-200 mx-auto mb-4" />
-          <p className="text-lg font-bold text-slate-900 mb-2">Akun affiliate belum aktif</p>
-          <p className="text-sm text-slate-500 max-w-sm mx-auto">Hubungi administrator untuk aktivasi akun affiliate Anda agar dapat mulai mereferensikan kandidat.</p>
+          <p className="text-xs font-bold text-slate-900 mb-2">Akun affiliate belum aktif</p>
+          <p className="text-xs text-slate-500 max-w-sm mx-auto">Hubungi administrator untuk aktivasi akun affiliate Anda agar dapat mulai mereferensikan kandidat.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-6">
@@ -88,17 +88,17 @@ export default function AffiliateDashboard() {
           {/* Per-Program Links */}
             <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
               <div className="px-6 py-4 border-b border-slate-200 bg-slate-50/50">
-                <h2 className="font-bold text-sm text-slate-900">Program Aktif Saya</h2>
+                <h2 className="font-bold text-xs text-slate-900">Program Aktif Saya</h2>
               </div>
               <div className="p-5 flex-1 space-y-3">
                 {myPrograms.length === 0 ? (
-                  <p className="text-sm text-slate-400 text-center py-8 italic font-medium">Belum ada program aktif.</p>
+                  <p className="text-xs text-slate-400 text-center py-8 italic font-medium">Belum ada program aktif.</p>
                 ) : (
                   myPrograms.map((program: any) => (
                     <div key={program.id} className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3 hover:border-fb-blue/30 transition-colors">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="font-bold text-slate-900 text-sm">{program.name}</p>
+                          <p className="font-bold text-slate-900 text-xs">{program.name}</p>
                           {program.fee && <p className="text-[10px] font-bold text-fb-blue uppercase tracking-widest">{formatCurrency(program.fee)}</p>}
                         </div>
                         <button
@@ -130,10 +130,10 @@ export default function AffiliateDashboard() {
           {/* Commissions */}
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-slate-200 bg-slate-50/50">
-              <h2 className="font-bold text-sm text-slate-900">Ringkasan Komisi</h2>
+                <h2 className="font-bold text-xs text-slate-900">Ringkasan Komisi</h2>
             </div>
             {!data?.commissions?.length ? (
-              <div className="p-12 text-center text-slate-400 font-medium italic">Belum ada komisi tercatat.</div>
+              <div className="p-12 text-center text-xs text-slate-400 font-medium italic">Belum ada komisi tercatat.</div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-xs border-collapse">
@@ -153,7 +153,7 @@ export default function AffiliateDashboard() {
                           </span>
                         </td>
                         <td className="px-6 py-4 text-center border border-slate-200 font-semibold text-slate-700">{c._count?._all ?? 0}</td>
-                        <td className="px-6 py-4 text-right border border-slate-200 font-black text-emerald-600 text-sm">{formatCurrency(c._sum?.amount || 0)}</td>
+                        <td className="px-6 py-4 text-right border border-slate-200 font-black text-emerald-600 text-xs">{formatCurrency(c._sum?.amount || 0)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -166,16 +166,16 @@ export default function AffiliateDashboard() {
           {data?.recentReferrals?.length > 0 && (
             <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-slate-200 bg-slate-50/50">
-                <h2 className="font-bold text-sm text-slate-900">Referral Terbaru</h2>
+                <h2 className="font-bold text-xs text-slate-900">Referral Terbaru</h2>
               </div>
               <div className="divide-y divide-slate-100">
                 {data.recentReferrals.map((r: any, i: number) => (
                   <div key={i} className="flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition-colors">
                     <div className="flex items-center gap-4">
-                      <div className="h-10 w-10 rounded-xl bg-fb-blue/10 flex items-center justify-center text-fb-blue font-black text-sm border border-fb-blue/20 shadow-sm">
+                      <div className="h-10 w-10 rounded-xl bg-fb-blue/10 flex items-center justify-center text-fb-blue font-black text-xs border border-fb-blue/20 shadow-sm">
                         {r.fullName[0].toUpperCase()}
                       </div>
-                      <span className="text-sm font-bold text-slate-700">{r.fullName}</span>
+                      <span className="text-xs font-bold text-slate-700">{r.fullName}</span>
                     </div>
                     <span className="text-[10px] font-bold text-slate-400 font-mono">{formatDate(r.createdAt)}</span>
                   </div>

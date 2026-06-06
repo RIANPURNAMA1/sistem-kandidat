@@ -7,6 +7,8 @@ import {
   getMyNotifications, markNotificationRead,
   getAuditLogs, getEmailSettings, updateEmailSettings, sendTestEmail,
   getWhatsAppSettings, updateWhatsAppSettings, getWaStatus, waStartSender, waStopSender, waSendTest,
+  getPaymentSettings, updatePaymentSettings,
+  getAffiliateSettings, updateAffiliateSettings,
 } from '../controllers/settingsController';
 import { authenticate } from '../middlewares/auth';
 import { isAdmin } from '../middlewares/authorize';
@@ -40,6 +42,14 @@ router.put('/testimonials/:id', isAdmin, updateTestimonial);
 
 router.post('/faqs', isAdmin, createFAQ);
 router.put('/faqs/:id', isAdmin, updateFAQ);
+
+// Payment / Rekening
+router.get('/payment', isAdmin, getPaymentSettings);
+router.put('/payment', isAdmin, updatePaymentSettings);
+
+// Affiliate
+router.get('/affiliate', isAdmin, getAffiliateSettings);
+router.put('/affiliate', isAdmin, updateAffiliateSettings);
 
 // WhatsApp
 router.get('/whatsapp', isAdmin, getWhatsAppSettings);

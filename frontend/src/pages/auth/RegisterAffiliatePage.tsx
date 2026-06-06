@@ -3,8 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useNavigate } from 'react-router-dom'
-import { Loader2, Mail, Lock, Banknote, ChevronDown, Check, User, CheckCircle, ChevronRight, ChevronLeft } from 'lucide-react'
-import { useAuthStore } from '@/stores/authStore'
+import { Loader2, ChevronDown, Check, CheckCircle, ChevronRight, ChevronLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input, Label } from '@/components/ui/index'
 import { toast } from '@/components/ui/toaster'
@@ -82,13 +81,8 @@ export default function RegisterAffiliatePage() {
         bankHolder: data.bankHolder,
         programIds: selectedProgramIds,
       })
-      useAuthStore.setState({
-        user: res.data.data.user,
-        token: res.data.data.token,
-        isAuthenticated: true,
-      })
-      toast({ title: 'Registrasi Berhasil', description: 'Selamat bergabung sebagai Affiliate Mendunia.' })
-      navigate('/affiliate')
+      toast({ title: 'Registrasi Berhasil', description: 'Selamat bergabung sebagai Affiliate Mendunia. Silakan login.' })
+      navigate('/login')
     } catch (err: any) {
       toast({
         title: 'Registrasi Gagal',

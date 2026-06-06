@@ -87,12 +87,12 @@ export default function AdminDashboard() {
     <div className="p-4 sm:p-5 flex flex-col justify-between group">
       <div className="flex items-center gap-2 text-muted-foreground mb-3">
         <Icon className="h-4 w-4" />
-        <span className="text-sm font-medium">{title}</span>
+        <span className="text-xs font-medium">{title}</span>
       </div>
       <div className="flex items-end justify-between">
-        <span className="text-2xl font-bold text-foreground">{value}</span>
+        <span className="text-sm font-bold text-foreground">{value}</span>
         {/* Fake trend badge matching Repliq design */}
-        <span className="flex items-center text-[11px] font-medium text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded text-emerald-700">
+        <span className="flex items-center text-[10px] font-medium text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded text-emerald-700">
           <ArrowUpRight className="h-3 w-3 mr-0.5" /> 2%
         </span>
       </div>
@@ -105,14 +105,14 @@ export default function AdminDashboard() {
       {/* 1. Header (Mirip "Welcome back, Omar") */}
       <div>
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-semibold text-foreground tracking-tight">Dashboard Overview</h1>
+          <h1 className="text-sm font-semibold text-foreground tracking-tight">Dashboard Overview</h1>
           {data?.isDemo && (
             <span className="px-2 py-0.5 bg-amber-100 text-amber-700 border border-amber-200 rounded-md text-xs font-medium flex items-center gap-1">
               <Info className="h-3 w-3" /> Simulasi
             </span>
           )}
         </div>
-        <p className="text-sm text-muted-foreground mt-1">
+        <p className="text-xs text-muted-foreground mt-1">
           Everything you need to monitor registrations, affiliates, and revenue.
         </p>
       </div>
@@ -151,7 +151,7 @@ export default function AdminDashboard() {
         <div className="flex items-center justify-between p-3 border border-border rounded-sm bg-background shadow-sm">
           <div className="flex items-center gap-3">
             <UserPlus className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground truncate max-w-[150px] md:max-w-xs">{window.location.origin}/register</span>
+            <span className="text-xs text-muted-foreground truncate max-w-[150px] md:max-w-xs">{window.location.origin}/register</span>
           </div>
           <Button size="sm" variant="ghost" className="h-7 text-xs text-primary" onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/register`); toast({ title: 'Link disalin!' })}}>
             <Copy className="h-3 w-3 mr-1" /> Copy
@@ -160,7 +160,7 @@ export default function AdminDashboard() {
         <div className="flex items-center justify-between p-3 border border-border rounded-sm bg-background shadow-sm">
           <div className="flex items-center gap-3">
             <ExternalLink className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground truncate max-w-[150px] md:max-w-xs">{window.location.origin}/register/affiliate</span>
+            <span className="text-xs text-muted-foreground truncate max-w-[150px] md:max-w-xs">{window.location.origin}/register/affiliate</span>
           </div>
           <Button size="sm" variant="ghost" className="h-7 text-xs text-primary" onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/register/affiliate`); toast({ title: 'Link affiliate disalin!' })}}>
             <Copy className="h-3 w-3 mr-1" /> Copy
@@ -191,7 +191,7 @@ export default function AdminDashboard() {
         {/* Growth Area Chart */}
         <div className="lg:col-span-2 border border-border rounded-sm bg-background shadow-sm flex flex-col overflow-hidden">
           <div className="p-4 border-b border-border flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-foreground">Tren Pendaftaran</h3>
+            <h3 className="text-xs font-semibold text-foreground">Tren Pendaftaran</h3>
           </div>
           <div className="h-[280px] p-5 pb-2">
             <ResponsiveContainer width="100%" height="100%">
@@ -216,7 +216,7 @@ export default function AdminDashboard() {
         {/* Status Pie Chart */}
         <div className="border border-border rounded-sm bg-background shadow-sm flex flex-col overflow-hidden">
           <div className="p-4 border-b border-border">
-            <h3 className="text-sm font-semibold text-foreground">Distribusi Status</h3>
+            <h3 className="text-xs font-semibold text-foreground">Distribusi Status</h3>
           </div>
           <div className="flex-1 p-5 flex flex-col justify-center">
             {data?.statusStats?.length ? (
@@ -239,7 +239,7 @@ export default function AdminDashboard() {
                     </PieChart>
                   </ResponsiveContainer>
                   <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <span className="text-2xl font-bold text-foreground">
+                    <span className="text-sm font-bold text-foreground">
                       {data.statusStats.reduce((s: number, c: any) => s + c.count, 0)}
                     </span>
                   </div>
@@ -263,7 +263,72 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* 5. Recent Table (Exactly matching "Recent messages" design) */}
+      {/* 5. Top Programs & Top Affiliates */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Top Programs */}
+        <div className="border border-border rounded-sm bg-background shadow-sm overflow-hidden">
+          <div className="p-4 border-b border-border flex items-center justify-between">
+            <h3 className="text-xs font-semibold text-foreground">Top 10 Program Terlaris</h3>
+            <BookOpen className="h-3.5 w-3.5 text-muted-foreground" />
+          </div>
+          {data?.topPrograms?.length ? (
+            <div className="divide-y divide-border">
+              {data.topPrograms.map((p: any, i: number) => (
+                <div key={p.id} className="flex items-center gap-3 px-4 py-2.5 hover:bg-muted/40 transition-colors">
+                  <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold flex-shrink-0 ${
+                    i === 0 ? 'bg-amber-100 text-amber-700' :
+                    i === 1 ? 'bg-slate-100 text-slate-600' :
+                    i === 2 ? 'bg-orange-100 text-orange-700' :
+                    'bg-muted text-muted-foreground'
+                  }`}>
+                    {i + 1}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-foreground truncate">{p.name}</p>
+                    <p className="text-[10px] text-muted-foreground">{p.totalSales} penjualan</p>
+                  </div>
+                  <span className="text-xs font-bold text-emerald-600 flex-shrink-0">{formatCurrency(p.totalRevenue)}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="p-8 text-center text-xs text-muted-foreground">Belum ada data penjualan</div>
+          )}
+        </div>
+
+        {/* Top Affiliates */}
+        <div className="border border-border rounded-sm bg-background shadow-sm overflow-hidden">
+          <div className="p-4 border-b border-border flex items-center justify-between">
+            <h3 className="text-xs font-semibold text-foreground">Top Affiliate</h3>
+            <Award className="h-3.5 w-3.5 text-muted-foreground" />
+          </div>
+          {data?.topAffiliates?.length ? (
+            <div className="divide-y divide-border">
+              {data.topAffiliates.map((a: any, i: number) => (
+                <div key={a.id} className="flex items-center gap-3 px-4 py-2.5 hover:bg-muted/40 transition-colors">
+                  <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold flex-shrink-0 ${
+                    i === 0 ? 'bg-amber-100 text-amber-700' :
+                    i === 1 ? 'bg-slate-100 text-slate-600' :
+                    i === 2 ? 'bg-orange-100 text-orange-700' :
+                    'bg-muted text-muted-foreground'
+                  }`}>
+                    {i + 1}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-foreground truncate">{a.name}</p>
+                    <p className="text-[10px] text-muted-foreground">{a.code} · {a.totalCommissions} komisi</p>
+                  </div>
+                  <span className="text-xs font-bold text-indigo-600 flex-shrink-0">{formatCurrency(a.totalCommission)}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="p-8 text-center text-xs text-muted-foreground">Belum ada data affiliate</div>
+          )}
+        </div>
+      </div>
+
+      {/* 6. Recent Table (Exactly matching "Recent messages" design) */}
       <div className="border border-border rounded-sm bg-background shadow-sm overflow-hidden flex flex-col">
         {/* Table Toolbar */}
         <div className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border bg-background">
@@ -302,7 +367,7 @@ export default function AdminDashboard() {
                       <div className="h-7 w-7 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-semibold">
                         {(app.candidate?.fullName || 'A').charAt(0).toUpperCase()}
                       </div>
-                      <span className="font-medium text-foreground text-sm">{app.candidate?.fullName || 'Anonim'}</span>
+                      <span className="font-medium text-foreground text-xs">{app.candidate?.fullName || 'Anonim'}</span>
                     </div>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
@@ -329,7 +394,7 @@ export default function AdminDashboard() {
               ))}
               {!data?.recentApplications?.length && (
                 <tr>
-                  <td colSpan={5} className="px-4 py-12 text-center text-sm text-muted-foreground">
+                  <td colSpan={5} className="px-4 py-12 text-center text-xs text-muted-foreground">
                     Belum ada pendaftaran terbaru.
                   </td>
                 </tr>

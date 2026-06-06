@@ -49,7 +49,7 @@ export async function processPaymentProof(imageBuffer: Buffer, mimeType: string)
     logger.info(`Starting OCR, size: ${imageBuffer.length} bytes, type: ${mimeType}`);
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.5-flash',
+      model: 'gemini-2.5-flash',
       contents: [
         {
           role: 'user',
@@ -69,15 +69,13 @@ export async function processPaymentProof(imageBuffer: Buffer, mimeType: string)
     const text = response.text ?? '';
     logger.info(`Gemini raw response (first 500 chars): ${text.substring(0, 500)}`);
 
-    // Try to extract JSON from response
-    let parsed: any = null;
+    let parsed: Record<string, unknown> | null = null;
 
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       try {
         parsed = JSON.parse(jsonMatch[0]);
       } catch {
-        // Try stripping markdown code blocks
         const stripped = text
           .replace(/```json\n?/gi, '')
           .replace(/```\n?/gi, '')
@@ -102,17 +100,17 @@ export async function processPaymentProof(imageBuffer: Buffer, mimeType: string)
         : parseFloat(String(parsed.confidence || '0')) || 0;
 
     return {
-      senderName: parsed.senderName || null,
-      receiverName: parsed.receiverName || null,
+      senderName: (parsed.senderName as string) || null,
+      receiverName: (parsed.receiverName as string) || null,
       amount:
         parsed.amount !== undefined && parsed.amount !== null && parsed.amount !== ''
           ? parseFloat(String(parsed.amount).replace(/[^0-9.]/g, '')) || null
           : null,
-      bankFrom: parsed.bankFrom || null,
-      bankTo: parsed.bankTo || null,
-      referenceNumber: parsed.referenceNumber || null,
-      transferDate: parsed.transferDate || null,
-      transferTime: parsed.transferTime || null,
+      bankFrom: (parsed.bankFrom as string) || null,
+      bankTo: (parsed.bankTo as string) || null,
+      referenceNumber: (parsed.referenceNumber as string) || null,
+      transferDate: (parsed.transferDate as string) || null,
+      transferTime: (parsed.transferTime as string) || null,
       confidence,
       rawJson: parsed,
       isValid: Boolean(parsed.isValid),
@@ -147,7 +145,7 @@ export function validateOcrAmount(
 } {
   if (!ocrAmount) return { isMatch: false, difference: expectedAmount };
   const difference = Math.abs(ocrAmount - expectedAmount);
-  const tolerance = expectedAmount * 0.01; // 1% tolerance
+  const tolerance = expectedAmount * 0.01;
   return {
     isMatch: difference <= tolerance,
     difference,
