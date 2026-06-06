@@ -477,8 +477,8 @@ export default function DashboardLayout({ role }: { role: string }) {
 
       </div>
 
-      {/* AI Chat Assistant */}
-      <AIChat />
+      {/* AI Chat Assistant — only for admin/finance */}
+      {role !== 'candidate' && role !== 'affiliate' && <AIChat />}
     </div>
   )
 }

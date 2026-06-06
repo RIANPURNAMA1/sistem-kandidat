@@ -17,19 +17,20 @@ export interface OcrResult {
   isValid: boolean;
 }
 
-const OCR_PROMPT = `You are an expert OCR system for Indonesian bank transfer receipts.
+const OCR_PROMPT = `You are an expert OCR system for Indonesian payment receipts.
 
-Analyze the provided bank transfer receipt image and extract data. 
+Analyze the provided payment receipt image and extract data. Supports both bank transfers (BCA, Mandiri, BNI, BRI, etc.) and e-wallet receipts (DANA, GoPay, OVO, ShopeePay, LinkAja, etc.).
+
 Return ONLY a raw JSON object (no markdown, no code blocks, no explanation).
 
 JSON format:
 {
-  "senderName": "full name of the sender/account owner who transferred, or null",
-  "receiverName": "full name of the recipient/beneficiary who received the transfer, or null",
+  "senderName": "full name or phone number of the sender/pengirim, or null",
+  "receiverName": "full name of the recipient/penerima, or null",
   "amount": 12500000,
-  "bankFrom": "source bank name e.g. BCA, Mandiri, BNI, BRI, or null",
-  "bankTo": "destination/recipient bank name, or null",
-  "referenceNumber": "transaction/reference/order number as string, or null",
+  "bankFrom": "source bank name e.g. BCA, Mandiri or e-wallet name e.g. DANA, GoPay, or null",
+  "bankTo": "destination bank name or recipient platform, or null",
+  "referenceNumber": "transaction/reference/order/invoice number as string, or null",
   "transferDate": "date in YYYY-MM-DD format, or null",
   "transferTime": "time in HH:MM:SS format, or null",
   "confidence": 85,
@@ -38,11 +39,15 @@ JSON format:
 
 Rules:
 - amount must be a plain number (no Rp, no commas, no dots as thousand separators)
-- senderName = the person who sent the money (pengirim)
-- receiverName = the person/account who received the money (penerima/tujuan transfer)
+- senderName = the person/account who sent the money (pengirim/sumber dana). For DANA: look at "Dari" or pengirim field. For bank: look at sender name.
+- receiverName = the person/account who received the money (penerima/tujuan)
+- bankFrom = source platform: bank name (BCA, Mandiri, BNI, BRI) OR e-wallet name (DANA, GoPay, OVO, ShopeePay)
+- bankTo = destination platform name
+- transferDate: extract the transaction date. For DANA receipts, look for "Tanggal" or date near the transaction details.
+- transferTime: extract the transaction time. For DANA, look for "Waktu" or time near the transaction details.
 - confidence is 0-100 based on how clearly you can read the data
-- isValid = true if image clearly shows a bank transfer receipt
-- if image is blurry/unreadable, set confidence to a low value and isValid to false`;
+- isValid = true if image clearly shows a payment/transfer receipt (bank or e-wallet)
+- if image is blurry/unreadable or not a payment receipt, set confidence to a low value and isValid to false`;
 
 export async function processPaymentProof(imageBuffer: Buffer, mimeType: string): Promise<OcrResult> {
   try {

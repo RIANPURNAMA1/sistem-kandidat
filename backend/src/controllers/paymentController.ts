@@ -23,43 +23,45 @@ export const uploadProof = catchAsync(async (req: Request, res: Response) => {
   const objectName = `payments/${uuidv4()}-${req.file.originalname}`;
   const fileUrl = await uploadFile(objectName, req.file.buffer, req.file.mimetype);
 
-  // Process OCR
-  const ocrResult = await processPaymentProof(req.file.buffer, req.file.mimetype);
-  const amountValidation = validateOcrAmount(ocrResult.amount, Number(payment.amount));
-
-  // Auto-determine status based on OCR
-  let autoStatus: string = 'MENUNGGU_VERIFIKASI';
-  if (ocrResult.isValid && amountValidation.isMatch && ocrResult.confidence >= 80) {
-    autoStatus = 'MENUNGGU_VERIFIKASI'; // Still needs human verification
-  }
-
+  // Update payment with proof URL immediately, set status to MENUNGGU_VERIFIKASI
   const updatedPayment = await prisma.payment.update({
     where: { id: paymentId },
     data: {
       proofUrl: fileUrl,
-      status: autoStatus as any,
+      status: 'MENUNGGU_VERIFIKASI',
       uploadedAt: new Date(),
-      ocrData: ocrResult.rawJson as any,
-      ocrConfidence: ocrResult.confidence,
-      bankFrom: ocrResult.bankFrom,
-      bankTo: ocrResult.bankTo,
-      senderName: ocrResult.senderName,
-      referenceNumber: ocrResult.referenceNumber,
-      transferDate: ocrResult.transferDate ? new Date(ocrResult.transferDate) : null,
     },
   });
 
   // Notify admins about new payment upload
   notifyPaymentUploaded(paymentId);
 
-  return sendSuccess(res, {
-    payment: updatedPayment,
-    ocr: {
-      ...ocrResult,
-      amountMatch: amountValidation.isMatch,
-      expectedAmount: payment.amount,
-    },
-  }, 'Bukti pembayaran berhasil diupload');
+  // Respond to user immediately — OCR runs in background
+  res.json({
+    success: true,
+    data: { payment: updatedPayment },
+    message: 'Bukti pembayaran berhasil diupload, OCR sedang diproses',
+  });
+
+  // Async OCR processing (fire & forget)
+  processPaymentProof(req.file.buffer, req.file.mimetype).then(async (ocrResult) => {
+    const amountValidation = validateOcrAmount(ocrResult.amount, Number(payment.amount));
+    await prisma.payment.update({
+      where: { id: paymentId },
+      data: {
+        ocrData: ocrResult.rawJson as any,
+        ocrConfidence: ocrResult.confidence,
+        bankFrom: ocrResult.bankFrom,
+        bankTo: ocrResult.bankTo,
+        senderName: ocrResult.senderName,
+        referenceNumber: ocrResult.referenceNumber,
+        transferDate: ocrResult.transferDate ? new Date(ocrResult.transferDate) : null,
+      },
+    });
+    logger.info(`OCR completed for payment ${paymentId}: confidence=${ocrResult.confidence}, amount=${ocrResult.amount}`);
+  }).catch((err) => {
+    logger.error(`OCR background processing failed for payment ${paymentId}: ${err.message}`);
+  });
 });
 
 export const verifyPayment = catchAsync(async (req: Request, res: Response) => {
