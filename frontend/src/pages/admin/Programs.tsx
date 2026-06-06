@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, Edit, Power, X, Loader2, Copy, Search, ChevronLeft, ChevronRight, Grid, SlidersHorizontal, Download, RefreshCw, MoreVertical, Clock } from 'lucide-react'
+import { Plus, Edit, Power, X, Loader2, Copy, Search, ChevronLeft, ChevronRight, Grid, SlidersHorizontal, Download, RefreshCw, MoreVertical, Clock, Tag, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input, Label, Textarea, Select } from '@/components/ui/index'
 import { formatCurrency, getStatusColor, getStatusLabel } from '@/lib/utils'
@@ -127,6 +127,138 @@ function ProgramFormModal({ isOpen, onClose, program, categories }: {
   )
 }
 
+function CategoryManageModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  const queryClient = useQueryClient()
+  const [editCat, setEditCat] = useState<any>(null)
+  const [formData, setFormData] = useState({ name: '', icon: '' })
+
+  const { data: catsData } = useQuery({
+    queryKey: ['admin-categories'],
+    queryFn: async () => { const { data } = await api.get('/programs/categories'); return data },
+  })
+  const categories = catsData?.data || catsData || []
+
+  const { mutate: createMutate, isPending: createPending } = useMutation({
+    mutationFn: (d: any) => api.post('/programs/categories', d),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-categories'] })
+      toast({ title: 'Kategori berhasil dibuat' })
+      setFormData({ name: '', icon: '' })
+    },
+    onError: () => toast({ title: 'Gagal membuat kategori', variant: 'destructive' }),
+  })
+
+  const { mutate: updateMutate, isPending: updatePending } = useMutation({
+    mutationFn: (d: any) => api.put(`/programs/categories/${editCat.id}`, d),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-categories'] })
+      toast({ title: 'Kategori berhasil diperbarui' })
+      setEditCat(null)
+      setFormData({ name: '', icon: '' })
+    },
+    onError: () => toast({ title: 'Gagal memperbarui kategori', variant: 'destructive' }),
+  })
+
+  const { mutate: deleteMutate, isPending: deletePending } = useMutation({
+    mutationFn: (id: string) => api.delete(`/programs/categories/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-categories'] })
+      toast({ title: 'Kategori berhasil dihapus' })
+    },
+    onError: (err: any) => toast({ title: err?.response?.data?.message || 'Gagal menghapus kategori', variant: 'destructive' }),
+  })
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!formData.name.trim()) return
+    if (editCat) updateMutate(formData)
+    else createMutate(formData)
+  }
+
+  const startEdit = (cat: any) => {
+    setEditCat(cat)
+    setFormData({ name: cat.name, icon: cat.icon || '' })
+  }
+
+  const cancelEdit = () => {
+    setEditCat(null)
+    setFormData({ name: '', icon: '' })
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50" onClick={onClose}>
+      <div
+        className="fixed inset-y-0 right-0 w-full max-w-lg bg-white shadow-2xl flex flex-col animate-in slide-in-from-right duration-300"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 shrink-0">
+          <h2 className="text-sm font-bold">Kelola Kategori</h2>
+          <Button variant="ghost" size="icon" onClick={onClose}><X className="h-4 w-4" /></Button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          {/* Form Tambah/Edit */}
+          <form onSubmit={handleSubmit} className="space-y-3 p-4 bg-slate-50 rounded-lg border border-slate-200">
+            <h3 className="text-xs font-semibold text-slate-600">{editCat ? 'Edit Kategori' : 'Tambah Kategori Baru'}</h3>
+            <div className="space-y-1">
+              <Label>Nama Kategori</Label>
+              <Input required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="cth: Kerja ke Jepang" />
+            </div>
+            <div className="space-y-1">
+              <Label>Icon (emoji)</Label>
+              <Input value={formData.icon} onChange={e => setFormData({...formData, icon: e.target.value})} placeholder="cth: 🇯🇵" />
+            </div>
+            <div className="flex gap-2">
+              <Button type="submit" size="sm" disabled={createPending || updatePending}>
+                {(createPending || updatePending) ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Menyimpan...</> : editCat ? 'Simpan' : 'Tambah'}
+              </Button>
+              {editCat && (
+                <Button type="button" variant="outline" size="sm" onClick={cancelEdit}>Batal</Button>
+              )}
+            </div>
+          </form>
+
+          {/* Daftar Kategori */}
+          <div className="space-y-2">
+            <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Daftar Kategori</h3>
+            {categories.length === 0 && (
+              <p className="text-xs text-slate-400 text-center py-8">Belum ada kategori</p>
+            )}
+            {categories.map((cat: any) => (
+              <div key={cat.id} className="flex items-center justify-between p-3 rounded-lg border border-slate-200 hover:border-slate-300 transition-colors">
+                <div className="flex items-center gap-3">
+                  <span className="text-lg">{cat.icon || <Tag className="h-4 w-4 text-slate-400" />}</span>
+                  <div>
+                    <span className="text-sm font-medium text-slate-800">{cat.name}</span>
+                    <span className="text-xs text-slate-400 ml-2">({cat._count?.programs || 0} program)</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Button size="icon" variant="ghost" className="h-7 w-7 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50"
+                    onClick={() => startEdit(cat)}>
+                    <Edit className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button size="icon" variant="ghost" className="h-7 w-7 text-slate-400 hover:text-red-500 hover:bg-red-50"
+                    disabled={deletePending}
+                    onClick={() => {
+                      if (window.confirm(`Yakin ingin menghapus kategori "${cat.name}"?`)) {
+                        deleteMutate(cat.id)
+                      }
+                    }}>
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function DeleteConfirmDialog({ isOpen, onClose, program, onConfirm, isPending }: {
   isOpen: boolean
   onClose: () => void
@@ -162,6 +294,7 @@ export default function AdminProgramsPage() {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [selectedProgram, setSelectedProgram] = useState<any>(null)
   const [showManage, setShowManage] = useState(false)
+  const [categoryModalOpen, setCategoryModalOpen] = useState(false)
 
   const copyLink = (id: string) => {
     const link = `${window.location.origin}/register?programId=${id}`
@@ -254,6 +387,11 @@ export default function AdminProgramsPage() {
                   <button className="w-full px-4 py-2 text-xs text-left text-slate-700 hover:bg-slate-50 flex items-center gap-2"
                     onClick={() => { setShowManage(false); refetch(); toast({ title: 'Data diperbarui' }) }}>
                     <RefreshCw className="h-3.5 w-3.5" /> Refresh Data
+                  </button>
+                  <div className="border-t border-slate-100 my-1" />
+                  <button className="w-full px-4 py-2 text-xs text-left text-slate-700 hover:bg-slate-50 flex items-center gap-2"
+                    onClick={() => { setShowManage(false); setCategoryModalOpen(true) }}>
+                    <Tag className="h-3.5 w-3.5" /> Kelola Kategori
                   </button>
                 </div>
               )}
@@ -427,6 +565,10 @@ export default function AdminProgramsPage() {
         program={selectedProgram}
         onConfirm={() => selectedProgram && toggleMutate(selectedProgram.id)}
         isPending={togglePending}
+      />
+      <CategoryManageModal
+        isOpen={categoryModalOpen}
+        onClose={() => { setCategoryModalOpen(false); refetch() }}
       />
     </div>
   )

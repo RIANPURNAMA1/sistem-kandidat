@@ -189,6 +189,19 @@ export const updateCategory = catchAsync(async (req: Request, res: Response) => 
   return sendSuccess(res, cat, 'Kategori berhasil diperbarui');
 });
 
+export const deleteCategory = catchAsync(async (req: Request, res: Response) => {
+  const cat = await prisma.programCategory.findUnique({
+    where: { id: String(req.params.id) },
+    include: { _count: { select: { programs: true } } },
+  });
+  if (!cat) throw new AppError('Kategori tidak ditemukan', 404);
+  if (cat._count.programs > 0) {
+    throw new AppError('Kategori tidak bisa dihapus karena masih memiliki program', 400);
+  }
+  await prisma.programCategory.delete({ where: { id: String(req.params.id) } });
+  return sendSuccess(res, null, 'Kategori berhasil dihapus');
+});
+
 // Payment Settings
 const PAYMENT_KEYS = ['bank_name', 'bank_account', 'bank_holder'];
 

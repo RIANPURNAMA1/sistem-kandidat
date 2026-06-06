@@ -18,6 +18,49 @@ export default function AIChat() {
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
+  // Drag state
+  const [pos, setPos] = useState({ x: window.innerWidth - 72, y: window.innerHeight - 72 })
+  const dragging = useRef(false)
+  const dragOffset = useRef({ x: 0, y: 0 })
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    dragging.current = true
+    dragOffset.current = { x: e.clientX - pos.x, y: e.clientY - pos.y }
+  }
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    dragging.current = true
+    dragOffset.current = { x: e.touches[0].clientX - pos.x, y: e.touches[0].clientY - pos.y }
+  }
+
+  useEffect(() => {
+    const onMove = (e: MouseEvent) => {
+      if (!dragging.current) return
+      setPos({
+        x: Math.max(0, Math.min(window.innerWidth - 48, e.clientX - dragOffset.current.x)),
+        y: Math.max(0, Math.min(window.innerHeight - 48, e.clientY - dragOffset.current.y)),
+      })
+    }
+    const onTouchMove = (e: TouchEvent) => {
+      if (!dragging.current) return
+      setPos({
+        x: Math.max(0, Math.min(window.innerWidth - 48, e.touches[0].clientX - dragOffset.current.x)),
+        y: Math.max(0, Math.min(window.innerHeight - 48, e.touches[0].clientY - dragOffset.current.y)),
+      })
+    }
+    const onEnd = () => { dragging.current = false }
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onEnd)
+    window.addEventListener('touchmove', onTouchMove, { passive: true })
+    window.addEventListener('touchend', onEnd)
+    return () => {
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup', onEnd)
+      window.removeEventListener('touchmove', onTouchMove)
+      window.removeEventListener('touchend', onEnd)
+    }
+  }, [])
+
   useEffect(() => {
     if (open) inputRef.current?.focus()
   }, [open])
@@ -147,17 +190,20 @@ export default function AIChat() {
 
   return (
     <>
-      {/* Floating button */}
+      {/* Floating button — draggable */}
       <button
         onClick={() => setOpen(!open)}
-        className="fixed bottom-6 right-6 z-50 h-12 w-12 rounded-full bg-[#009ce1] hover:bg-[#007bc4] text-white shadow-lg hover:shadow-xl flex items-center justify-center transition-all active:scale-90"
+        onMouseDown={handleMouseDown}
+        onTouchStart={handleTouchStart}
+        style={{ left: pos.x, top: pos.y }}
+        className="fixed z-50 h-12 w-12 rounded-full bg-[#009ce1] hover:bg-[#007bc4] text-white shadow-lg hover:shadow-xl flex items-center justify-center active:scale-90 cursor-grab active:cursor-grabbing select-none"
       >
         {open ? <X className="h-5 w-5" /> : <Bot className="h-5 w-5" />}
       </button>
 
       {/* Chat panel */}
       {open && (
-        <div className="fixed bottom-20 right-6 z-50 w-[360px] max-w-[calc(100vw-2rem)] h-[520px] max-h-[calc(100vh-10rem)] bg-white rounded-xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden animate-in slide-in-from-bottom-8 fade-in duration-200">
+        <div style={{ left: Math.max(0, pos.x - 312), top: Math.max(0, pos.y - 540) }} className="fixed z-50 w-[360px] max-w-[calc(100vw-2rem)] h-[520px] max-h-[calc(100vh-10rem)] bg-white rounded-xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden animate-in slide-in-from-bottom-8 fade-in duration-200">
           {/* Header */}
           <div className="flex items-center gap-2.5 px-4 py-3 bg-[#009ce1] text-white">
             <Bot className="h-5 w-5" />

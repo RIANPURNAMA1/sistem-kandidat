@@ -344,14 +344,15 @@ export default function CheckoutSettingsForm() {
             </CardContent>
           </Card>
 
-          <Button
-            onClick={handleSave}
-            disabled={saveMutation.isPending}
-            className="w-full"
-          >
-            {saveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-            {editingId ? 'Perbarui' : 'Simpan'} Pengaturan
-          </Button>
+          <div className="flex justify-end">
+            <Button
+              onClick={handleSave}
+              disabled={saveMutation.isPending}
+            >
+              {saveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              {editingId ? 'Perbarui' : 'Simpan'} Pengaturan
+            </Button>
+          </div>
 
           {savedSlug && (
             <Card className="border-emerald-200 bg-emerald-50">

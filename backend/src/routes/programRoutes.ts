@@ -4,7 +4,7 @@ import {
   updateProgram, deleteProgram, applyProgram,
 } from '../controllers/programController';
 import {
-  getCategories, createCategory, updateCategory,
+  getCategories, createCategory, updateCategory, deleteCategory,
 } from '../controllers/settingsController';
 import { authenticate } from '../middlewares/auth';
 import { isAdmin } from '../middlewares/authorize';
@@ -26,5 +26,6 @@ router.put('/:id', isAdmin, updateProgram);
 router.delete('/:id', isAdmin, deleteProgram);
 router.post('/categories', isAdmin, createCategory);
 router.put('/categories/:id', isAdmin, updateCategory);
+router.delete('/categories/:id', isAdmin, deleteCategory);
 
 export default router;

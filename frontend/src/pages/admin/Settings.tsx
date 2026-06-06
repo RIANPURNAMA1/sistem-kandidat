@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { Card, CardContent } from '@/components/ui/index'
-import { Settings, Mail, MessageSquare, CreditCard, Globe, ScanLine, Tag, Gift, ShoppingCart } from 'lucide-react'
+import { Settings, Mail, MessageSquare, CreditCard, Globe, ScanLine, Tag, Gift, ShoppingCart, FolderTree } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import EmailSettingsForm from './EmailSettingsForm'
 import WhatsAppSettingsForm from './WhatsAppSettingsForm'
 import RekeningSettingsForm from './RekeningSettingsForm'
 import AffiliateSettingsForm from './AffiliateSettingsForm'
 import CheckoutSettingsForm from './CheckoutSettingsForm'
+import ProgramCategoryForm from './ProgramCategoryForm'
 
 const sections = [
   { icon: Globe, label: 'Pengaturan Website', desc: 'Nama situs, tagline, alamat, kontak' },
@@ -18,6 +19,7 @@ const sections = [
   { icon: ShoppingCart, label: 'Pengaturan Checkout', desc: 'Form pendaftaran/checkout kandidat' },
   { icon: Tag, label: 'Kupon Diskon', desc: 'Kelola kode kupon dan diskon' },
   { icon: Gift, label: 'Reward', desc: 'Kelola reward dan penukaran poin affiliate' },
+  { icon: FolderTree, label: 'Kategori Program', desc: 'CRUD kategori untuk program' },
 ]
 
 export default function AdminSettingsPage() {
@@ -34,6 +36,24 @@ export default function AdminSettingsPage() {
       return
     }
     setActiveSection(label)
+  }
+
+  if (activeSection === 'Kategori Program') {
+    return (
+      <div className="space-y-6">
+        <button
+          onClick={() => setActiveSection(null)}
+          className="text-xs text-indigo-600 hover:text-indigo-800 font-medium"
+        >
+          ← Kembali
+        </button>
+        <div>
+          <h1 className="text-lg font-bold">Kategori Program</h1>
+          <p className="text-xs text-muted-foreground">CRUD kategori untuk program</p>
+        </div>
+        <ProgramCategoryForm />
+      </div>
+    )
   }
 
   if (activeSection === 'Pengaturan Checkout') {
