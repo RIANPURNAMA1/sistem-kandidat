@@ -80,7 +80,7 @@ export default function AdminAffiliatesPage() {
     <div className="min-h-screen space-y-5">
       <div>
         <h1 className="text-lg font-bold">Manajemen Affiliate</h1>
-        <p className="text-xs text-muted-foreground mt-0.5">Kelola data affiliate dan komisi referral</p>
+        <p className="text-xs text-slate-500 mt-0.5">Kelola data affiliate dan komisi referral</p>
       </div>
       <div className="bg-white rounded-sm shadow-sm border border-slate-200 overflow-hidden">
 

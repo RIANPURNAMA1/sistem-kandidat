@@ -331,7 +331,7 @@ export default function AdminProgramsPage() {
     <div className="min-h-screen space-y-5">
       <div>
         <h1 className="text-lg font-bold">Manajemen Program</h1>
-        <p className="text-xs text-muted-foreground mt-0.5">Kelola program kerja yang tersedia untuk kandidat</p>
+        <p className="text-xs text-slate-500 mt-0.5">Kelola program kerja yang tersedia untuk kandidat</p>
       </div>
       <div className="bg-white rounded-sm shadow-sm border border-slate-200 overflow-hidden">
 
