@@ -328,13 +328,17 @@ export default function AdminProgramsPage() {
   })
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen space-y-5">
+      <div>
+        <h1 className="text-lg font-bold">Manajemen Program</h1>
+        <p className="text-xs text-muted-foreground mt-0.5">Kelola program kerja yang tersedia untuk kandidat</p>
+      </div>
       <div className="bg-white rounded-sm shadow-sm border border-slate-200 overflow-hidden">
 
         {/* ── Toolbar Atas ── */}
         <div className="px-5 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <h2 className="text-xs font-semibold text-slate-800">Manajemen Program</h2>
+            <h2 className="text-xs font-semibold text-slate-800">Program</h2>
             <span className="text-xs text-slate-400">
               {page} of {data?.pagination?.totalPages || 1}
             </span>
