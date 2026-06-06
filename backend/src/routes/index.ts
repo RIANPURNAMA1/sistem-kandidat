@@ -1,0 +1,30 @@
+import { Router } from 'express';
+import authRoutes from './authRoutes';
+import candidateRoutes from './candidateRoutes';
+import programRoutes from './programRoutes';
+import paymentRoutes from './paymentRoutes';
+import affiliateRoutes from './affiliateRoutes';
+import documentRoutes from './documentRoutes';
+import dashboardRoutes from './dashboardRoutes';
+import settingsRoutes from './settingsRoutes';
+import ocrRoutes from './ocrRoutes';
+import aiRoutes from './aiRoutes';
+import reportRoutes from './reportRoutes';
+import couponRoutes from './couponRoutes';
+import followUpRoutes from './followUpRoutes';
+
+export const router = Router();
+
+router.use('/auth', authRoutes);
+router.use('/candidates', candidateRoutes);
+router.use('/programs', programRoutes);
+router.use('/payments', paymentRoutes);
+router.use('/affiliates', affiliateRoutes);
+router.use('/documents', documentRoutes);
+router.use('/dashboard', dashboardRoutes);
+router.use('/settings', settingsRoutes);
+router.use('/ocr', ocrRoutes);
+router.use('/ai', aiRoutes);
+router.use('/reports', reportRoutes);
+router.use('/coupons', couponRoutes);
+router.use('/follow-ups', followUpRoutes);

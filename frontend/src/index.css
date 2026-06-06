@@ -1,0 +1,95 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 220 14% 20%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 14% 20%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 14% 20%;
+    --primary: 242 67% 21%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 14% 20%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 10% 60%;
+    --accent: 242 67% 21%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 14% 92%;
+    --input: 220 14% 92%;
+    --ring: 242 67% 21%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
+  }
+}
+
+@layer base {
+  * { @apply border-border; }
+  body { @apply bg-background text-foreground; }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { @apply bg-transparent; }
+::-webkit-scrollbar-thumb { @apply bg-muted-foreground/20 rounded-full; }
+::-webkit-scrollbar-thumb:hover { @apply bg-muted-foreground/40; }
+
+/* Smooth transitions */
+* { transition-property: color, background-color, border-color; transition-duration: 150ms; }
+
+/* Facebook-style table */
+@layer components {
+  .fb-table {
+    @apply w-full text-sm;
+  }
+  .fb-table thead th {
+    @apply text-left py-3 px-4 font-semibold text-muted-foreground text-xs uppercase tracking-wider border-b bg-muted/30;
+  }
+  .fb-table tbody td {
+    @apply py-3 px-4 border-b border-border/50;
+  }
+  .fb-table tbody tr {
+    @apply hover:bg-muted/40 transition-colors;
+  }
+  .fb-table tbody tr:last-child td {
+    @apply border-b-0;
+  }
+
+  .fb-card {
+    @apply bg-white rounded-lg border border-border/60 shadow-sm;
+  }
+  .fb-card-header {
+    @apply px-5 py-4 border-b border-border/40;
+  }
+  .fb-card-body {
+    @apply px-5 py-4;
+  }
+}

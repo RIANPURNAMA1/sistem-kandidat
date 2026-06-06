@@ -1,0 +1,542 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  FINANCE
+  AFFILIATE
+  KANDIDAT
+}
+
+enum Gender {
+  LAKI_LAKI
+  PEREMPUAN
+}
+
+enum MaritalStatus {
+  BELUM_MENIKAH
+  MENIKAH
+  CERAI
+}
+
+enum BloodType {
+  A
+  B
+  AB
+  O
+}
+
+enum ProgramStatus {
+  AKTIF
+  NONAKTIF
+  PENUH
+  SELESAI
+}
+
+enum ApplicationStatus {
+  DRAFT
+  SUBMITTED
+  REVIEW
+  INTERVIEW
+  ACCEPTED
+  REJECTED
+  WAITING_PAYMENT
+  PAID
+  TRAINING
+  PLACED
+  COMPLETED
+}
+
+enum PaymentStatus {
+  MENUNGGU_UPLOAD
+  MENUNGGU_VERIFIKASI
+  VALID
+  DITOLAK
+}
+
+enum DocumentType {
+  KTP
+  KK
+  PASPOR
+  IJAZAH
+  CV
+  SERTIFIKAT
+  LAINNYA
+}
+
+enum DocumentStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum CommissionStatus {
+  PENDING
+  APPROVED
+  PAID
+  REJECTED
+}
+
+enum WithdrawalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  PAID
+}
+
+enum AuditAction {
+  LOGIN
+  LOGOUT
+  CREATE
+  UPDATE
+  DELETE
+  APPROVE
+  REJECT
+  UPLOAD
+  DOWNLOAD
+  VIEW
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  password     String
+  role         Role      @default(KANDIDAT)
+  isActive     Boolean   @default(true)
+  isVerified   Boolean   @default(false)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  candidate    Candidate?
+  affiliate    Affiliate?
+  auditLogs    AuditLog[]
+  notifications Notification[]
+
+  @@map("users")
+}
+
+model Candidate {
+  id               String         @id @default(uuid())
+  userId           String         @unique
+  nik              String         @unique
+  fullName         String
+  birthPlace       String
+  birthDate        DateTime
+  gender           Gender
+  maritalStatus    MaritalStatus
+  address          String         @db.Text
+  kampung          String?
+  desa             String?
+  kecamatan        String
+  kabupaten        String
+  provinsi         String
+  lastEducation    String
+  graduationYear   Int?
+  height           Float?
+  weight           Float?
+  bloodType        BloodType?
+  clothingSize     String?
+  phone            String
+  guardianName     String?
+  guardianPhone    String?
+  fatherOccupation String?
+  motherOccupation String?
+  childOrder       Int?
+  totalSiblings    Int?
+  referredBy       String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  affiliate        Affiliate?     @relation(fields: [referredBy], references: [code])
+  documents        Document[]
+  applications     Application[]
+  payments         Payment[]
+  followUpLogs     FollowUpLog[]
+
+  @@map("candidates")
+}
+
+model Program {
+  id                  String          @id @default(uuid())
+  name                String
+  slug                String          @unique
+  categoryId          String
+  description         String          @db.LongText
+  requirements        String          @db.Text
+  benefits            String?         @db.Text
+  quota               Int
+  startDate           DateTime?
+  endDate             DateTime?
+  fee                 Decimal         @db.Decimal(15, 2)
+  affiliateCommission Decimal         @db.Decimal(15, 2)
+  commissionType      String          @default("FIXED")
+  country             String?
+  duration            String?
+  status              ProgramStatus   @default(AKTIF)
+  thumbnailUrl        String?
+  isFeatured          Boolean         @default(false)
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  category     ProgramCategory @relation(fields: [categoryId], references: [id])
+  applications Application[]
+  affiliates   AffiliateProgram[]
+  coupons      Coupon[]
+
+  @@map("programs")
+}
+
+model ProgramCategory {
+  id        String    @id @default(uuid())
+  name      String
+  slug      String    @unique
+  icon      String?
+  programs  Program[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("program_categories")
+}
+
+model Application {
+  id            String            @id @default(uuid())
+  candidateId   String
+  programId     String
+  status        ApplicationStatus @default(SUBMITTED)
+  notes         String?           @db.Text
+  adminNotes    String?           @db.Text
+  submittedAt   DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  candidate     Candidate         @relation(fields: [candidateId], references: [id])
+  program       Program           @relation(fields: [programId], references: [id])
+  payment       Payment?
+  statusHistory ApplicationHistory[]
+
+  @@unique([candidateId, programId])
+  @@map("applications")
+}
+
+model ApplicationHistory {
+  id            String            @id @default(uuid())
+  applicationId String
+  status        ApplicationStatus
+  notes         String?
+  changedBy     String?
+  createdAt     DateTime          @default(now())
+
+  application   Application @relation(fields: [applicationId], references: [id])
+
+  @@map("application_histories")
+}
+
+model Document {
+  id          String         @id @default(uuid())
+  candidateId String
+  type        DocumentType
+  fileName    String
+  fileUrl     String
+  fileSize    Int?
+  mimeType    String?
+  status      DocumentStatus @default(PENDING)
+  adminNotes  String?
+  verifiedAt  DateTime?
+  verifiedBy  String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  candidate   Candidate @relation(fields: [candidateId], references: [id])
+
+  @@map("documents")
+}
+
+model Coupon {
+  id            String    @id @default(uuid())
+  code          String    @unique
+  description   String?
+  discountType  String    @default("PERCENTAGE") // PERCENTAGE or FIXED
+  discountValue Decimal   @db.Decimal(15, 2)
+  programId     String?
+  maxUses       Int       @default(0)
+  usedCount     Int       @default(0)
+  minPayment    Decimal   @db.Decimal(15, 2) @default(0)
+  maxDiscount   Decimal?  @db.Decimal(15, 2)
+  expiresAt     DateTime?
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  program       Program?  @relation(fields: [programId], references: [id])
+
+  @@map("coupons")
+}
+
+model Payment {
+  id              String        @id @default(uuid())
+  applicationId   String        @unique
+  candidateId     String
+  amount          Decimal       @db.Decimal(15, 2)
+  status          PaymentStatus @default(MENUNGGU_UPLOAD)
+  proofUrl        String?
+  uploadedAt      DateTime?
+  verifiedAt      DateTime?
+  verifiedBy      String?
+  rejectedReason  String?       @db.Text
+  ocrData         Json?
+  ocrConfidence   Float?
+  bankFrom        String?
+  bankTo          String?
+  senderName      String?
+  referenceNumber String?
+  receiverName    String?
+  transferDate    DateTime?
+  couponCode      String?
+  discountAmount  Decimal       @db.Decimal(15, 2) @default(0)
+  originalAmount  Decimal?      @db.Decimal(15, 2)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  application Application @relation(fields: [applicationId], references: [id])
+  candidate   Candidate   @relation(fields: [candidateId], references: [id])
+  commission  Commission?
+
+  @@map("payments")
+}
+
+model Affiliate {
+  id                 String   @id @default(uuid())
+  userId             String   @unique
+  code               String   @unique
+  name               String?
+  referralLink       String?
+  qrCode             String?
+  bankName           String?
+  bankAccount        String?
+  bankHolder         String?
+  isActive           Boolean  @default(true)
+  totalClicks        Int      @default(0)
+  totalRegistrations Int      @default(0)
+  totalPaid          Int      @default(0)
+  totalCommission    Decimal  @db.Decimal(15, 2) @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  referrals   Candidate[]
+  clickLogs   AffiliateClick[]
+  commissions Commission[]
+  withdrawals Withdrawal[]
+  programs    AffiliateProgram[]
+
+  @@map("affiliates")
+}
+
+model AffiliateProgram {
+  affiliateId String
+  programId   String
+  createdAt   DateTime @default(now())
+
+  affiliate Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  program   Program   @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@id([affiliateId, programId])
+  @@map("affiliate_programs")
+}
+
+model AffiliateClick {
+  id          String    @id @default(uuid())
+  affiliateId String
+  ip          String?
+  userAgent   String?
+  referrer    String?
+  createdAt   DateTime  @default(now())
+
+  affiliate Affiliate @relation(fields: [affiliateId], references: [id])
+
+  @@map("affiliate_clicks")
+}
+
+model Commission {
+  id          String           @id @default(uuid())
+  affiliateId String
+  paymentId   String           @unique
+  amount      Decimal          @db.Decimal(15, 2)
+  status      CommissionStatus @default(PENDING)
+  approvedAt  DateTime?
+  approvedBy  String?
+  paidAt      DateTime?
+  notes       String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  affiliate Affiliate @relation(fields: [affiliateId], references: [id])
+  payment   Payment   @relation(fields: [paymentId], references: [id])
+
+  @@map("commissions")
+}
+
+model Withdrawal {
+  id             String           @id @default(uuid())
+  affiliateId    String
+  amount         Decimal          @db.Decimal(15, 2)
+  status         WithdrawalStatus @default(PENDING)
+  bankName       String
+  bankAccount    String
+  bankHolder     String
+  notes          String?
+  processedAt    DateTime?
+  processedBy    String?
+  rejectedReason String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  affiliate Affiliate @relation(fields: [affiliateId], references: [id])
+
+  @@map("withdrawals")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  message   String   @db.Text
+  type      String   @default("INFO")
+  isRead    Boolean  @default(false)
+  data      Json?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model AuditLog {
+  id         String      @id @default(uuid())
+  userId     String?
+  action     AuditAction
+  resource   String
+  resourceId String?
+  before     Json?
+  after      Json?
+  ip         String?
+  userAgent  String?
+  createdAt  DateTime    @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@map("audit_logs")
+}
+
+model Setting {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String   @db.Text
+  group     String   @default("GENERAL")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("settings")
+}
+
+model Banner {
+  id        String   @id @default(uuid())
+  title     String
+  imageUrl  String
+  linkUrl   String?
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("banners")
+}
+
+model Testimonial {
+  id        String   @id @default(uuid())
+  name      String
+  position  String?
+  content   String   @db.Text
+  photoUrl  String?
+  rating    Int      @default(5)
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("testimonials")
+}
+
+model FAQ {
+  id        String   @id @default(uuid())
+  question  String
+  answer    String   @db.Text
+  category  String?
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("faqs")
+}
+
+model FollowUpCategory {
+  id          String       @id @default(uuid())
+  name        String
+  slug        String       @unique
+  description String?
+  icon        String?
+  color       String?
+  isActive    Boolean      @default(true)
+  sortOrder   Int          @default(0)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  templates   FollowUpTemplate[]
+
+  @@map("follow_up_categories")
+}
+
+model FollowUpTemplate {
+  id              String             @id @default(uuid())
+  categoryId      String
+  name            String
+  subject         String?
+  message         String             @db.Text
+  channel         String             @default("WHATSAPP") // WHATSAPP or EMAIL
+  placeholders    String?            @db.Text // comma-separated list of available placeholders
+  isActive        Boolean            @default(true)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  category        FollowUpCategory   @relation(fields: [categoryId], references: [id])
+  logs            FollowUpLog[]
+
+  @@map("follow_up_templates")
+}
+
+model FollowUpLog {
+  id              String             @id @default(uuid())
+  templateId      String
+  candidateId     String
+  channel         String             @default("WHATSAPP")
+  to              String
+  message         String             @db.Text
+  status          String             @default("SENT") // SENT, FAILED
+  errorMessage    String?
+  sentAt          DateTime           @default(now())
+  createdAt       DateTime           @default(now())
+
+  template        FollowUpTemplate   @relation(fields: [templateId], references: [id])
+  candidate       Candidate          @relation(fields: [candidateId], references: [id])
+
+  @@map("follow_up_logs")
+}
