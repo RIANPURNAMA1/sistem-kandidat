@@ -5,7 +5,7 @@ import api from '../services/api'
 export interface User {
   id: string
   email: string
-  role: 'SUPER_ADMIN' | 'ADMIN' | 'FINANCE' | 'AFFILIATE' | 'KANDIDAT'
+  role: 'SUPER_ADMIN' | 'ADMIN' | 'FINANCE' | 'AFFILIATE' | 'KANDIDAT' | 'GURU'
   candidate?: { id: string; fullName: string } | null
   affiliate?: { id: string; code: string; referralLink: string } | null
 }

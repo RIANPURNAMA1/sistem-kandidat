@@ -22,10 +22,17 @@ import AdminFollowUpTemplates from '@/pages/admin/FollowUpTemplates'
 import AdminFollowUpSend from '@/pages/admin/FollowUpSend'
 import AdminFinancialReport from '@/pages/admin/FinancialReport'
 import AdminSettings from '@/pages/admin/Settings'
+import AdminNotifications from '@/pages/admin/Notifications'
 import AdminAuditLogs from '@/pages/admin/AuditLogs'
 import AdminRewards from '@/pages/admin/Rewards'
 import AdminCandidateDetail from '@/pages/admin/CandidateDetail'
+import AdminMemberAreas from '@/pages/admin/MemberAreas'
+import MemberAreaDetail from '@/pages/admin/MemberAreaDetail'
+import MemberAreasBrowse from '@/pages/MemberAreasBrowse'
 import InvoicePage from '@/pages/candidate/Invoice'
+import AdminLMS from '@/pages/admin/LMS'
+import AdminLMSCourseDetail from '@/pages/admin/LMSCourseDetail'
+import AdminLMSEnrollments from '@/pages/admin/LMSEnrollments'
 
 // Candidate pages
 import CandidateDashboard from '@/pages/candidate/Dashboard'
@@ -34,15 +41,24 @@ import CandidateDocuments from '@/pages/candidate/Documents'
 import CandidateApplications from '@/pages/candidate/Applications'
 import CandidatePayments from '@/pages/candidate/Payments'
 import CandidateInvoice from '@/pages/candidate/Invoice'
+import CandidateNotifications from '@/pages/candidate/Notifications'
+import CandidateLMS from '@/pages/candidate/LMS'
+import CandidateCourseLearn from '@/pages/candidate/CourseLearn'
 
 // Affiliate pages
 import AffiliateDashboard from '@/pages/affiliate/Dashboard'
 import AffiliateLeaderboard from '@/pages/affiliate/Leaderboard'
 import AffiliateRewards from '@/pages/affiliate/Rewards'
+import AffiliateNotifications from '@/pages/affiliate/Notifications'
 // Finance pages
 import FinanceDashboard from '@/pages/finance/Dashboard'
 import FinancePayments from '@/pages/finance/Payments'
 import FinanceCommissions from '@/pages/finance/Commissions'
+import FinanceNotifications from '@/pages/finance/Notifications'
+// Guru pages
+import GuruDashboard from '@/pages/guru/Dashboard'
+import GuruCourses from '@/pages/guru/Courses'
+import GuruCourseManage from '@/pages/guru/CourseManage'
 
 type Role = User['role']
 
@@ -58,7 +74,7 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   if (isAuthenticated && user) {
     const redirectMap: Record<Role, string> = {
       SUPER_ADMIN: '/admin', ADMIN: '/admin', FINANCE: '/finance',
-      AFFILIATE: '/affiliate', KANDIDAT: '/candidate',
+      AFFILIATE: '/affiliate', KANDIDAT: '/candidate', GURU: '/guru',
     }
     return <Navigate to={redirectMap[user.role]} replace />
   }
@@ -97,8 +113,14 @@ export default function App() {
           <Route path="follow-up/categories" element={<AdminFollowUpCategories />} />
           <Route path="follow-up/templates" element={<AdminFollowUpTemplates />} />
           <Route path="follow-up/send" element={<AdminFollowUpSend />} />
+          <Route path="member-areas" element={<AdminMemberAreas />} />
+          <Route path="member-areas/:slug" element={<MemberAreaDetail />} />
           <Route path="candidates/:paymentId/invoice" element={<InvoicePage />} />
           <Route path="payments/:paymentId/invoice" element={<InvoicePage />} />
+          <Route path="lms" element={<AdminLMS />} />
+          <Route path="lms/:id" element={<AdminLMSCourseDetail />} />
+          <Route path="lms-enrollments" element={<AdminLMSEnrollments />} />
+          <Route path="notifications" element={<AdminNotifications />} />
         </Route>
 
         {/* Candidate */}
@@ -113,6 +135,11 @@ export default function App() {
           <Route path="applications" element={<CandidateApplications />} />
           <Route path="payments" element={<CandidatePayments />} />
           <Route path="payments/:paymentId/invoice" element={<CandidateInvoice />} />
+          <Route path="notifications" element={<CandidateNotifications />} />
+          <Route path="member-areas" element={<MemberAreasBrowse role="candidate" />} />
+          <Route path="member-areas/:slug" element={<MemberAreaDetail />} />
+          <Route path="lms" element={<CandidateLMS />} />
+          <Route path="lms/:courseId" element={<CandidateCourseLearn />} />
         </Route>
 
         {/* Finance */}
@@ -125,6 +152,7 @@ export default function App() {
           <Route path="payments" element={<FinancePayments />} />
           <Route path="payments/:paymentId/invoice" element={<InvoicePage />} />
           <Route path="commissions" element={<FinanceCommissions />} />
+          <Route path="notifications" element={<FinanceNotifications />} />
         </Route>
 
         {/* Affiliate */}
@@ -136,6 +164,21 @@ export default function App() {
           <Route index element={<AffiliateDashboard />} />
           <Route path="leaderboard" element={<AffiliateLeaderboard />} />
           <Route path="rewards" element={<AffiliateRewards />} />
+          <Route path="notifications" element={<AffiliateNotifications />} />
+          <Route path="member-areas" element={<MemberAreasBrowse role="affiliate" />} />
+          <Route path="member-areas/:slug" element={<MemberAreaDetail />} />
+        </Route>
+
+        {/* Guru */}
+        <Route path="/guru" element={
+          <ProtectedRoute roles={['SUPER_ADMIN', 'ADMIN', 'GURU']}>
+            <DashboardLayout role="guru" />
+          </ProtectedRoute>
+        }>
+          <Route index element={<GuruDashboard />} />
+          <Route path="courses" element={<GuruCourses />} />
+          <Route path="courses/:id/manage" element={<GuruCourseManage />} />
+          <Route path="notifications" element={<AdminNotifications />} />
         </Route>
 
         <Route path="/unauthorized" element={

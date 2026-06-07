@@ -9,6 +9,7 @@ import {
   getWhatsAppSettings, updateWhatsAppSettings, getWaStatus, waStartSender, waStopSender, waSendTest,
   getPaymentSettings, updatePaymentSettings,
   getAffiliateSettings, updateAffiliateSettings,
+  getOcrSettings, updateOcrSettings,
 } from '../controllers/settingsController';
 import { authenticate } from '../middlewares/auth';
 import { isAdmin } from '../middlewares/authorize';
@@ -58,5 +59,9 @@ router.get('/whatsapp/status', isAdmin, getWaStatus);
 router.post('/whatsapp/start', isAdmin, waStartSender);
 router.post('/whatsapp/stop', isAdmin, waStopSender);
 router.post('/whatsapp/test', isAdmin, waSendTest);
+
+// OCR / Auto-Verify
+router.get('/ocr', isAdmin, getOcrSettings);
+router.put('/ocr', isAdmin, updateOcrSettings);
 
 export default router;

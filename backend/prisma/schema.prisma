@@ -13,6 +13,7 @@ enum Role {
   FINANCE
   AFFILIATE
   KANDIDAT
+  GURU
 }
 
 enum Gender {
@@ -120,6 +121,15 @@ model User {
   affiliate    Affiliate?
   auditLogs    AuditLog[]
   notifications Notification[]
+  memberAreaMembers MemberAreaMember[] @relation("MemberAreaMemberUser")
+  memberAreaInvites  MemberAreaMember[] @relation("MemberAreaMemberInviter")
+  memberAreaPosts    MemberAreaPost[]
+  memberAreaComments MemberAreaComment[]
+  memberAreaReactions MemberAreaReaction[]
+  memberAreaFiles    MemberAreaFile[]
+  lmsEnrollments     CourseEnrollment[]
+  lmsTeaching        CourseEnrollment[] @relation("GuruEnrollment")
+  lmsGradedSubmissions AssignmentSubmission[] @relation("GradedBy")
 
   @@map("users")
 }
@@ -587,16 +597,296 @@ model RewardRedemption {
   @@map("reward_redemptions")
 }
 
-model CheckoutSetting {
-  id         String   @id @default(uuid())
-  title      String
-  programIds Json
-  template   String   @default("default")
-  fields     Json
-  slug       String   @unique
-  isActive   Boolean  @default(true)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+enum FormType {
+  REGISTER
+  AFFILIATE
+}
 
-  @@map("checkout_settings")
+model FormSetting {
+  id         String    @id @default(uuid())
+  title      String
+  formType   FormType  @default(REGISTER)
+  programIds Json?
+  template   String    @default("default")
+  fields     Json
+  slug       String    @unique
+  isActive   Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@map("form_settings")
+}
+
+enum MemberAreaRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum MemberAreaVisibility {
+  PUBLIC
+  PRIVATE
+  INVITE_ONLY
+}
+
+enum PostType {
+  ANNOUNCEMENT
+  DISCUSSION
+  SHARED_FILE
+  POLL
+}
+
+model MemberAreaCategory {
+  id        String       @id @default(uuid())
+  name      String
+  slug      String       @unique
+  icon      String?
+  color     String?
+  sortOrder Int          @default(0)
+  isActive  Boolean      @default(true)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  areas     MemberArea[]
+
+  @@map("member_area_categories")
+}
+
+model MemberArea {
+  id          String             @id @default(uuid())
+  name        String
+  slug        String             @unique
+  description String?            @db.Text
+  coverUrl    String?
+  avatarUrl   String?
+  categoryId  String?
+  visibility  MemberAreaVisibility @default(PRIVATE)
+  isActive    Boolean            @default(true)
+  targetRole  Role?              // KANDIDAT, AFFILIATE, etc - who can join
+  maxMembers  Int?
+  settings    Json?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  category    MemberAreaCategory? @relation(fields: [categoryId], references: [id])
+  createdBy   String?
+  members     MemberAreaMember[]
+  posts       MemberAreaPost[]
+  files       MemberAreaFile[]
+
+  @@map("member_areas")
+}
+
+model MemberAreaMember {
+  id        String        @id @default(uuid())
+  areaId    String
+  userId    String
+  role      MemberAreaRole @default(MEMBER)
+  joinedAt  DateTime      @default(now())
+  isActive  Boolean       @default(true)
+  invitedBy String?
+
+  area      MemberArea    @relation(fields: [areaId], references: [id], onDelete: Cascade)
+  user      User          @relation("MemberAreaMemberUser", fields: [userId], references: [id], onDelete: Cascade)
+  inviter   User?         @relation("MemberAreaMemberInviter", fields: [invitedBy], references: [id])
+
+  @@unique([areaId, userId])
+  @@map("member_area_members")
+}
+
+model MemberAreaPost {
+  id        String    @id @default(uuid())
+  areaId    String
+  userId    String
+  title     String
+  content   String    @db.Text
+  type      PostType  @default(DISCUSSION)
+  isPinned  Boolean   @default(false)
+  isLocked  Boolean   @default(false)
+  tags      String?   @db.Text // comma-separated
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  area      MemberArea   @relation(fields: [areaId], references: [id], onDelete: Cascade)
+  user      User         @relation(fields: [userId], references: [id])
+  comments  MemberAreaComment[]
+  reactions MemberAreaReaction[]
+  files     MemberAreaFile[]
+
+  @@map("member_area_posts")
+}
+
+model MemberAreaComment {
+  id        String   @id @default(uuid())
+  postId    String
+  userId    String
+  content   String   @db.Text
+  parentId  String?  // for nested replies
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  post      MemberAreaPost   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User             @relation(fields: [userId], references: [id])
+  parent    MemberAreaComment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   MemberAreaComment[] @relation("CommentReplies")
+
+  @@map("member_area_comments")
+}
+
+model MemberAreaReaction {
+  id        String   @id @default(uuid())
+  postId    String
+  userId    String
+  emoji     String   @default("👍") // 👍 ❤️ 😂 😮 😢 🔥
+  createdAt DateTime @default(now())
+
+  post      MemberAreaPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId, emoji])
+  @@map("member_area_reactions")
+}
+
+model MemberAreaFile {
+  id        String   @id @default(uuid())
+  areaId    String?
+  postId    String?
+  userId    String
+  fileName  String
+  fileUrl   String
+  fileSize  Int
+  mimeType  String
+  createdAt DateTime @default(now())
+
+  area      MemberArea? @relation(fields: [areaId], references: [id], onDelete: Cascade)
+  post      MemberAreaPost? @relation(fields: [postId], references: [id], onDelete: SetNull)
+  user      User        @relation(fields: [userId], references: [id])
+
+  @@map("member_area_files")
+}
+
+// ── LMS (Learning Management System) ──
+
+enum AssignmentStatus {
+  BELUM_MENGUMPULKAN
+  MENUNGGU_DINILAI
+  DINILAI
+}
+
+model Course {
+  id          String   @id @default(uuid())
+  title       String
+  slug        String   @unique
+  description String?  @db.Text
+  coverUrl    String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  modules     CourseModule[]
+  enrollments CourseEnrollment[]
+
+  @@map("courses")
+}
+
+model CourseModule {
+  id        String   @id @default(uuid())
+  courseId   String
+  title     String
+  description String? @db.Text
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  course     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons    CourseLesson[]
+  assignments CourseAssignment[]
+
+  @@map("course_modules")
+}
+
+model CourseLesson {
+  id        String   @id @default(uuid())
+  moduleId  String
+  title     String
+  content   String?  @db.LongText
+  videoUrl  String?
+  duration  Int?     // in minutes
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  module     CourseModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  materials  CourseMaterial[]
+
+  @@map("course_lessons")
+}
+
+model CourseMaterial {
+  id        String   @id @default(uuid())
+  lessonId  String
+  title     String
+  fileUrl   String
+  fileType  String   @default("FILE") // FILE, VIDEO, LINK, EMBED
+  fileSize  Int?
+  createdAt DateTime @default(now())
+
+  lesson     CourseLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@map("course_materials")
+}
+
+model CourseAssignment {
+  id          String           @id @default(uuid())
+  moduleId    String
+  title       String
+  description String?          @db.Text
+  maxScore    Int              @default(100)
+  dueDate     DateTime?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  module      CourseModule     @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  submissions AssignmentSubmission[]
+
+  @@map("course_assignments")
+}
+
+model CourseEnrollment {
+  id        String   @id @default(uuid())
+  courseId   String
+  userId    String
+  teacherId String?  // GURU assigned to this student for this course
+  status    String   @default("AKTIF") // AKTIF, SELESAI, KELUAR
+  enrolledAt DateTime @default(now())
+  completedAt DateTime?
+
+  course     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teacher    User?    @relation("GuruEnrollment", fields: [teacherId], references: [id])
+  submissions AssignmentSubmission[]
+
+  @@unique([courseId, userId])
+  @@map("course_enrollments")
+}
+
+model AssignmentSubmission {
+  id             String           @id @default(uuid())
+  assignmentId   String
+  enrollmentId   String
+  content        String?          @db.Text
+  fileUrl        String?
+  score          Int?
+  feedback       String?          @db.Text
+  status         AssignmentStatus @default(BELUM_MENGUMPULKAN)
+  submittedAt    DateTime?
+  gradedAt       DateTime?
+  gradedBy       String?
+
+  assignment     CourseAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  enrollment     CourseEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  grader         User?            @relation("GradedBy", fields: [gradedBy], references: [id])
+
+  @@unique([assignmentId, enrollmentId])
+  @@map("assignment_submissions")
 }

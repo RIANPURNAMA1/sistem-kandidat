@@ -19,6 +19,7 @@ export const ROLES = {
   FINANCE: 'FINANCE',
   AFFILIATE: 'AFFILIATE',
   KANDIDAT: 'KANDIDAT',
+  GURU: 'GURU',
 } as const;
 
 // Shortcut role guards
@@ -27,4 +28,5 @@ export const isAdmin = authorize(ROLES.SUPER_ADMIN, ROLES.ADMIN);
 export const isFinance = authorize(ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.FINANCE);
 export const isAffiliate = authorize(ROLES.AFFILIATE);
 export const isKandidat = authorize(ROLES.KANDIDAT);
+export const isGuru = authorize(ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.GURU);
 export const isStaff = authorize(ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.FINANCE);

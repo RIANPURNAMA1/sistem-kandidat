@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../config/database';
-import { catchAsync, sendSuccess } from '../utils/AppError';
+import { AppError, catchAsync, sendSuccess } from '../utils/AppError';
 import { sendEmail } from '../services/emailService';
 import { getSenderStatus, startSender, stopSender, sendWaMessage } from '../services/waService';
 
@@ -254,6 +254,42 @@ export const updateAffiliateSettings = catchAsync(async (req: Request, res: Resp
     })
   );
   return sendSuccess(res, null, 'Pengaturan afiliasi berhasil disimpan');
+});
+
+// OCR / Auto-Verify Settings
+const OCR_KEYS = ['ocr_auto_verify_enabled', 'ocr_confidence_threshold', 'ocr_auto_verify_schedule', 'ocr_auto_verify_last_run', 'ocr_auto_verify_last_result'];
+
+export const getOcrSettings = catchAsync(async (_req: Request, res: Response) => {
+  const settings = await prisma.setting.findMany({
+    where: { group: 'OCR' },
+  });
+  const map: Record<string, string> = {};
+  settings.forEach(s => { map[s.key] = s.value; });
+  return sendSuccess(res, map);
+});
+
+export const updateOcrSettings = catchAsync(async (req: Request, res: Response) => {
+  const updates = req.body as Record<string, string>;
+  await Promise.all(
+    Object.entries(updates).map(([key, value]) => {
+      if (!OCR_KEYS.includes(key)) return Promise.resolve();
+      return prisma.setting.upsert({
+        where: { key },
+        create: { key, value, group: 'OCR' },
+        update: { value },
+      });
+    })
+  );
+
+  // Restart scheduler with new settings
+  try {
+    const { restartScheduler } = await import('../services/schedulerService');
+    await restartScheduler();
+  } catch (err) {
+    // Scheduler restart is non-critical
+  }
+
+  return sendSuccess(res, null, 'Pengaturan OCR berhasil disimpan');
 });
 
 // WhatsApp Settings

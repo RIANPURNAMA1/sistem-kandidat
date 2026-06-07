@@ -1,10 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Eye, CheckCircle, XCircle, Receipt, Banknote, User as UserIcon, Calendar, Info, ScanLine, Zap, Loader2, Filter, ChevronDown, Download, RefreshCw, X } from 'lucide-react'
+import { Eye, CheckCircle, XCircle, Receipt, Banknote, User as UserIcon, Calendar, ScanLine, Zap, Loader2, Filter, Download, X } from 'lucide-react'
 import * as Dialog from '@radix-ui/react-dialog'
 
-import { Button } from '@/components/ui/button'
-import { formatCurrency, formatDateTime, getStatusColor, getStatusLabel, cn } from '@/lib/utils'
+import { formatCurrency, formatDateTime, cn } from '@/lib/utils'
 import { toast } from '@/components/ui/toaster'
 import api from '@/services/api'
 
@@ -162,11 +161,12 @@ export default function AdminPaymentsPage() {
   const payments: any[] = data?.data ?? []
 
   const exportCSV = () => {
-    const headers = ['Kandidat', 'Program', 'Nominal', 'Status', 'Penerima', 'Bank', 'Tgl Transfer', 'Confidence', 'Waktu Upload']
+    const headers = ['Kandidat', 'Program', 'Nominal', 'Nilai Transfer OCR', 'Status', 'Penerima', 'Bank', 'Tgl Transfer', 'Confidence', 'Waktu Upload']
     const rows = payments.map((p: any) => [
       p.candidate?.fullName || '',
       p.application?.program?.name || '',
       p.amount,
+      p.ocrData?.amount || '',
       p.status,
       p.receiverName || '',
       `${p.bankFrom || ''} -> ${p.bankTo || ''}`,
@@ -336,7 +336,7 @@ export default function AdminPaymentsPage() {
                     onChange={toggleSelectAll}
                   />
                 </th>
-                {['Kandidat', 'Program', 'Nominal', 'Status', 'Penerima', 'Bank', 'Tgl Transfer', 'OCR', 'Waktu Upload', ''].map((h, i) => (
+                {['Kandidat', 'Program', 'Nominal', 'Status', 'Penerima', 'Bank', 'Tgl Transfer', 'Nilai Transfer (OCR)', 'OCR', 'Waktu Upload', ''].map((h, i) => (
                   <th
                     key={h + i}
                     className={cn(
@@ -355,7 +355,7 @@ export default function AdminPaymentsPage() {
                   <td className="px-4 py-3.5 border border-slate-100">
                     <div className="h-3 w-3 bg-slate-100 rounded mx-auto" />
                   </td>
-                  {[140, 160, 80, 90, 110, 80, 70, 40, 80].map((w, j) => (
+                  {[140, 160, 80, 90, 110, 80, 70, 90, 40, 80].map((w, j) => (
                     <td key={j} className="px-4 py-3.5 border border-slate-100">
                       <div className="h-3 bg-slate-100 rounded" style={{ width: w }} />
                     </td>
@@ -365,7 +365,7 @@ export default function AdminPaymentsPage() {
 
               {!isLoading && payments.length === 0 && (
                 <tr>
-                  <td colSpan={11} className="px-4 py-14 text-center text-xs text-slate-400 border border-slate-100">
+                  <td colSpan={12} className="px-4 py-14 text-center text-xs text-slate-400 border border-slate-100">
                     Tidak ada data pembayaran
                   </td>
                 </tr>
@@ -442,6 +442,30 @@ export default function AdminPaymentsPage() {
                         {new Date(p.transferDate).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
                       </span>
                     ) : <span className="text-slate-300">—</span>}
+                  </td>
+
+                  {/* Nilai Transfer (OCR) */}
+                  <td className="px-4 py-[13px] border border-slate-100">
+                    {p.ocrData?.amount ? (
+                      <div className="space-y-0.5">
+                        <span className={cn(
+                          'text-xs font-bold tabular-nums',
+                          Math.abs(Number(p.ocrData.amount) - Number(p.amount)) <= 0
+                            ? 'text-emerald-600'
+                            : 'text-amber-600'
+                        )}>
+                          {formatCurrency(p.ocrData.amount)}
+                        </span>
+                        {Math.abs(Number(p.ocrData.amount) - Number(p.amount)) > 0 && (
+                          <span className="text-[9px] text-amber-500 block">≠ {formatCurrency(p.amount)}</span>
+                        )}
+                        {Math.abs(Number(p.ocrData.amount) - Number(p.amount)) <= 0 && (
+                          <span className="text-[9px] text-emerald-500 block">✓ Cocok</span>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-slate-300">—</span>
+                    )}
                   </td>
 
                   {/* OCR */}
@@ -591,6 +615,32 @@ export default function AdminPaymentsPage() {
                             ? new Date(selectedPayment.transferDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
                             : '—'
                           } />
+                          {selectedPayment.ocrData?.amount && (
+                            <div className="pt-2 mt-2 border-t border-amber-200">
+                              <DetailRow label="Nilai Transfer (OCR)" value={
+                                <span className={cn(
+                                  'font-bold',
+                                  Math.abs(Number(selectedPayment.ocrData.amount) - Number(selectedPayment.amount)) <= 0
+                                    ? 'text-emerald-600'
+                                    : 'text-amber-600'
+                                )}>
+                                  {formatCurrency(selectedPayment.ocrData.amount)}
+                                </span>
+                              } />
+                              <div className="flex justify-between items-center mt-1">
+                                <span className="text-xs text-muted-foreground">Nominal Sistem</span>
+                                <span className="text-xs font-semibold">{formatCurrency(selectedPayment.amount)}</span>
+                              </div>
+                              <div className="flex justify-between items-center mt-1">
+                                <span className="text-xs text-muted-foreground">Status</span>
+                                {Math.abs(Number(selectedPayment.ocrData.amount) - Number(selectedPayment.amount)) <= 0 ? (
+                                  <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">✓ Cocok</span>
+                                ) : (
+                                  <span className="text-[10px] font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded">⚠ Tidak Cocok</span>
+                                )}
+                              </div>
+                            </div>
+                          )}
                           <div className="pt-2 mt-2 border-t border-amber-200 flex justify-between items-center">
                             <span className="text-xs text-muted-foreground">Akurasi OCR</span>
                             <OcrBadge value={selectedPayment.ocrConfidence} />

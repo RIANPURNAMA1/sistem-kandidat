@@ -8,9 +8,9 @@ import api from '@/services/api'
 
 function StatCard({ icon: Icon, label, value, color }: any) {
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+    <div className="bg-white border border-[#009ce1]/20 rounded-sm p-5 shadow-sm hover:shadow-md hover:border-[#009ce1]/30 transition-all">
       <div className="flex items-center gap-4">
-        <div className={`h-12 w-12 rounded-xl flex items-center justify-center shadow-lg ${color}`}>
+        <div className={`h-12 w-12 rounded-sm flex items-center justify-center shadow-lg ${color}`}>
           <Icon className="h-6 w-6 text-white" />
         </div>
         <div>
@@ -70,7 +70,7 @@ export default function AffiliateDashboard() {
       </div>
 
       {!affiliate ? (
-        <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm">
+        <div className="bg-white border border-[#009ce1]/20 rounded-sm p-12 text-center shadow-sm hover:shadow-md hover:border-[#009ce1]/30 transition-all">
           <TrendingUp className="h-16 w-16 text-slate-200 mx-auto mb-4" />
           <p className="text-xs font-bold text-slate-900 mb-2">Akun affiliate belum aktif</p>
           <p className="text-xs text-slate-500 max-w-sm mx-auto">Hubungi administrator untuk aktivasi akun affiliate Anda agar dapat mulai mereferensikan kandidat.</p>
@@ -86,8 +86,8 @@ export default function AffiliateDashboard() {
           </div>
 
           {/* Per-Program Links */}
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-              <div className="px-6 py-4 border-b border-slate-200 bg-slate-50/50">
+            <div className="bg-white border border-[#009ce1]/20 rounded-sm shadow-sm overflow-hidden flex flex-col hover:shadow-md hover:border-[#009ce1]/30 transition-all">
+              <div className="px-6 py-4 border-b border-[#009ce1]/10 bg-fb-gray/30">
                 <h2 className="font-bold text-xs text-slate-900">Program Aktif Saya</h2>
               </div>
               <div className="p-5 flex-1 space-y-3">
@@ -95,7 +95,7 @@ export default function AffiliateDashboard() {
                   <p className="text-xs text-slate-400 text-center py-8 italic font-medium">Belum ada program aktif.</p>
                 ) : (
                   myPrograms.map((program: any) => (
-                    <div key={program.id} className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3 hover:border-fb-blue/30 transition-colors">
+                    <div key={program.id} className="bg-fb-gray/50 border border-[#009ce1]/15 rounded-sm p-4 space-y-3 hover:border-[#009ce1]/30 hover:shadow-sm transition-all">
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="font-bold text-slate-900 text-xs">{program.name}</p>
@@ -103,13 +103,13 @@ export default function AffiliateDashboard() {
                         </div>
                         <button
                           onClick={() => removeMutation.mutate(program.id)}
-                          className="h-8 w-8 rounded-lg hover:bg-red-100 flex items-center justify-center text-slate-400 hover:text-red-600 transition-all"
+                          className="h-8 w-8 rounded-sm hover:bg-red-100 flex items-center justify-center text-slate-400 hover:text-red-600 transition-all"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 bg-white border border-slate-200 rounded-lg px-3 py-1.5 flex items-center gap-2 overflow-hidden shadow-inner">
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1 bg-white border border-[#009ce1]/15 rounded-sm px-3 py-1.5 flex items-center gap-2 overflow-hidden shadow-inner">
                           <span className="text-[10px] text-slate-400 font-mono">Link:</span>
                           <input
                             readOnly
@@ -117,7 +117,7 @@ export default function AffiliateDashboard() {
                             className="bg-transparent text-[11px] font-mono text-slate-600 border-0 outline-none w-full"
                           />
                         </div>
-                        <Button size="icon" variant="ghost" className="h-9 w-9 rounded-lg hover:bg-white hover:shadow-sm" onClick={() => copyLink(program.referralLink)}>
+                          <Button size="icon" variant="ghost" className="h-9 w-9 rounded-sm hover:bg-white hover:shadow-sm" onClick={() => copyLink(program.referralLink)}>
                           <Copy className="h-4 w-4" />
                         </Button>
                       </div>
@@ -128,8 +128,8 @@ export default function AffiliateDashboard() {
             </div>
 
           {/* Commissions */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-200 bg-slate-50/50">
+          <div className="bg-white border border-[#009ce1]/20 rounded-sm shadow-sm overflow-hidden hover:shadow-md hover:border-[#009ce1]/30 transition-all">
+            <div className="px-6 py-4 border-b border-[#009ce1]/10 bg-fb-gray/30">
                 <h2 className="font-bold text-xs text-slate-900">Ringkasan Komisi</h2>
             </div>
             {!data?.commissions?.length ? (
@@ -138,22 +138,22 @@ export default function AffiliateDashboard() {
               <div className="overflow-x-auto">
                 <table className="w-full text-xs border-collapse">
                   <thead>
-                    <tr className="bg-slate-50 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                      <th className="px-6 py-4 text-left border border-slate-200">Status</th>
-                      <th className="px-6 py-4 text-center border border-slate-200">Jumlah Transaksi</th>
-                      <th className="px-6 py-4 text-right border border-slate-200">Total Komisi</th>
+                    <tr className="bg-fb-gray/30 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                      <th className="px-6 py-4 text-left border border-[#009ce1]/10">Status</th>
+                      <th className="px-6 py-4 text-center border border-[#009ce1]/10">Jumlah Transaksi</th>
+                      <th className="px-6 py-4 text-right border border-[#009ce1]/10">Total Komisi</th>
                     </tr>
                   </thead>
                   <tbody>
                     {data.commissions.map((c: any) => (
-                      <tr key={c.status} className="hover:bg-slate-50 transition-colors">
-                        <td className="px-6 py-4 border border-slate-200">
+                      <tr key={c.status} className="hover:bg-fb-gray/50 transition-colors">
+                        <td className="px-6 py-4 border border-[#009ce1]/10">
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold ${getStatusColor(c.status)}`}>
                             {getStatusLabel(c.status)}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-center border border-slate-200 font-semibold text-slate-700">{c._count?._all ?? 0}</td>
-                        <td className="px-6 py-4 text-right border border-slate-200 font-black text-emerald-600 text-xs">{formatCurrency(c._sum?.amount || 0)}</td>
+                        <td className="px-6 py-4 text-center border border-[#009ce1]/10 font-semibold text-slate-700">{c._count?._all ?? 0}</td>
+                        <td className="px-6 py-4 text-right border border-[#009ce1]/10 font-black text-emerald-600 text-xs">{formatCurrency(c._sum?.amount || 0)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -164,15 +164,15 @@ export default function AffiliateDashboard() {
 
           {/* Recent referrals */}
           {data?.recentReferrals?.length > 0 && (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-6 py-4 border-b border-slate-200 bg-slate-50/50">
+            <div className="bg-white border border-[#009ce1]/20 rounded-sm shadow-sm overflow-hidden hover:shadow-md hover:border-[#009ce1]/30 transition-all">
+              <div className="px-6 py-4 border-b border-[#009ce1]/10 bg-fb-gray/30">
                 <h2 className="font-bold text-xs text-slate-900">Referral Terbaru</h2>
               </div>
-              <div className="divide-y divide-slate-100">
+              <div className="divide-y divide-[#009ce1]/10">
                 {data.recentReferrals.map((r: any, i: number) => (
-                  <div key={i} className="flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition-colors">
+                  <div key={i} className="flex items-center justify-between px-6 py-4 hover:bg-fb-gray/50 transition-colors">
                     <div className="flex items-center gap-4">
-                      <div className="h-10 w-10 rounded-xl bg-fb-blue/10 flex items-center justify-center text-fb-blue font-black text-xs border border-fb-blue/20 shadow-sm">
+                      <div className="h-10 w-10 rounded-sm bg-fb-blue/10 flex items-center justify-center text-fb-blue font-black text-xs border border-fb-blue/20 shadow-sm">
                         {r.fullName[0].toUpperCase()}
                       </div>
                       <span className="text-xs font-bold text-slate-700">{r.fullName}</span>

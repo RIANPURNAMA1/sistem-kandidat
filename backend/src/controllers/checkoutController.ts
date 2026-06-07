@@ -7,7 +7,7 @@ import { uploadFile } from '../config/minio';
 import { v4 as uuidv4 } from 'uuid';
 import { logger } from '../utils/logger';
 
-const DEFAULT_FIELDS = [
+const DEFAULT_REGISTER_FIELDS = [
   { key: 'nik', label: 'NIK', required: true, enabled: true },
   { key: 'fullName', label: 'Nama Lengkap', required: true, enabled: true },
   { key: 'birthPlace', label: 'Tempat Lahir', required: true, enabled: true },
@@ -26,13 +26,28 @@ const DEFAULT_FIELDS = [
   { key: 'weight', label: 'Berat Badan', required: false, enabled: false },
   { key: 'bloodType', label: 'Golongan Darah', required: false, enabled: false },
   { key: 'clothingSize', label: 'Ukuran Baju', required: false, enabled: false },
-  { key: 'phone', label: 'No. Telepon', required: true, enabled: true },
+  { key: 'phone', label: 'No. WA', required: true, enabled: true },
   { key: 'guardianName', label: 'Nama Wali', required: false, enabled: false },
-  { key: 'guardianPhone', label: 'No. Telepon Wali', required: false, enabled: false },
+  { key: 'guardianPhone', label: 'No. WA Wali', required: false, enabled: false },
   { key: 'fatherOccupation', label: 'Pekerjaan Ayah', required: false, enabled: false },
   { key: 'motherOccupation', label: 'Pekerjaan Ibu', required: false, enabled: false },
   { key: 'childOrder', label: 'Anak Ke-', required: false, enabled: false },
   { key: 'totalSiblings', label: 'Jumlah Saudara', required: false, enabled: false },
+]
+
+const DEFAULT_AFFILIATE_FIELDS = [
+  { key: 'fullName', label: 'Nama Lengkap', required: true, enabled: true },
+  { key: 'nik', label: 'NIK', required: true, enabled: true },
+  { key: 'phone', label: 'No. WA', required: true, enabled: true },
+  { key: 'email', label: 'Email', required: true, enabled: true },
+  { key: 'address', label: 'Alamat', required: true, enabled: true },
+  { key: 'bankName', label: 'Nama Bank', required: true, enabled: true },
+  { key: 'bankAccount', label: 'No. Rekening', required: true, enabled: true },
+  { key: 'bankAccountName', label: 'Nama Pemilik Rekening', required: true, enabled: true },
+  { key: 'instagram', label: 'Instagram', required: false, enabled: true },
+  { key: 'tiktok', label: 'TikTok', required: false, enabled: true },
+  { key: 'facebook', label: 'Facebook', required: false, enabled: true },
+  { key: 'youtube', label: 'YouTube', required: false, enabled: true },
 ]
 
 function generateSlug(title: string): string {
@@ -43,123 +58,170 @@ function generateSlug(title: string): string {
 
 function mapCandidateFields(body: any) {
   const fields: Record<string, any> = {}
+  const candidateFields = ['nik', 'fullName', 'birthPlace', 'birthDate', 'gender', 'maritalStatus', 'address', 'kampung', 'desa', 'kecamatan', 'kabupaten', 'provinsi', 'lastEducation', 'graduationYear', 'height', 'weight', 'bloodType', 'clothingSize', 'phone', 'guardianName', 'guardianPhone', 'fatherOccupation', 'motherOccupation', 'childOrder', 'totalSiblings']
+  for (const field of candidateFields) {
+    if (body[field] !== undefined) {
+      if (['birthDate'].includes(field)) {
+        fields[field] = new Date(body[field])
+      } else if (['graduationYear', 'height', 'weight', 'childOrder', 'totalSiblings'].includes(field)) {
+        fields[field] = body[field] ? parseFloat(body[field]) : null
+      } else {
+        fields[field] = body[field]
+      }
+    }
+  }
+  return fields
+}
 
-  if (body.nik !== undefined) fields.nik = body.nik
-  if (body.fullName !== undefined) fields.fullName = body.fullName
-  if (body.birthPlace !== undefined) fields.birthPlace = body.birthPlace
-  if (body.birthDate !== undefined) fields.birthDate = new Date(body.birthDate)
-  if (body.gender !== undefined) fields.gender = body.gender
-  if (body.maritalStatus !== undefined) fields.maritalStatus = body.maritalStatus
-  if (body.address !== undefined) fields.address = body.address
-  if (body.kampung !== undefined) fields.kampung = body.kampung
-  if (body.desa !== undefined) fields.desa = body.desa
-  if (body.kecamatan !== undefined) fields.kecamatan = body.kecamatan
-  if (body.kabupaten !== undefined) fields.kabupaten = body.kabupaten
-  if (body.provinsi !== undefined) fields.provinsi = body.provinsi
-  if (body.lastEducation !== undefined) fields.lastEducation = body.lastEducation
-  if (body.graduationYear !== undefined) fields.graduationYear = body.graduationYear ? parseInt(body.graduationYear) : null
-  if (body.height !== undefined) fields.height = body.height ? parseFloat(body.height) : null
-  if (body.weight !== undefined) fields.weight = body.weight ? parseFloat(body.weight) : null
-  if (body.bloodType !== undefined) fields.bloodType = body.bloodType
-  if (body.clothingSize !== undefined) fields.clothingSize = body.clothingSize
-  if (body.phone !== undefined) fields.phone = body.phone
-  if (body.guardianName !== undefined) fields.guardianName = body.guardianName
-  if (body.guardianPhone !== undefined) fields.guardianPhone = body.guardianPhone
-  if (body.fatherOccupation !== undefined) fields.fatherOccupation = body.fatherOccupation
-  if (body.motherOccupation !== undefined) fields.motherOccupation = body.motherOccupation
-  if (body.childOrder !== undefined) fields.childOrder = body.childOrder ? parseInt(body.childOrder) : null
-  if (body.totalSiblings !== undefined) fields.totalSiblings = body.totalSiblings ? parseInt(body.totalSiblings) : null
-
+function mapAffiliateFields(body: any) {
+  const fields: Record<string, any> = {}
+  if (body.fullName) fields.fullName = body.fullName
+  if (body.nik) fields.nik = body.nik
+  if (body.phone) fields.phone = body.phone
+  if (body.address) fields.address = body.address
+  if (body.bankName) fields.bankName = body.bankName
+  if (body.bankAccount) fields.bankAccount = body.bankAccount
+  if (body.bankAccountName) fields.bankAccountName = body.bankAccountName
+  if (body.instagram) fields.instagram = body.instagram
+  if (body.tiktok) fields.tiktok = body.tiktok
+  if (body.facebook) fields.facebook = body.facebook
+  if (body.youtube) fields.youtube = body.youtube
   return fields
 }
 
 export const getCheckoutSettings = catchAsync(async (_req: Request, res: Response) => {
-  const settings = await prisma.checkoutSetting.findMany({
+  const settings = await prisma.formSetting.findMany({
     orderBy: { createdAt: 'desc' },
   })
   const parsed = settings.map(s => ({
     ...s,
-    programIds: JSON.parse(s.programIds as string),
+    programIds: s.programIds ? JSON.parse(s.programIds as string) : [],
     fields: JSON.parse(s.fields as string),
   }))
   return sendSuccess(res, parsed)
 })
 
 export const getCheckoutSetting = catchAsync(async (req: Request, res: Response) => {
-  const setting = await prisma.checkoutSetting.findUnique({
+  const setting = await prisma.formSetting.findUnique({
     where: { id: req.params.id as string },
   })
-  if (!setting) throw new AppError('Pengaturan checkout tidak ditemukan', 404)
+  if (!setting) throw new AppError('Pengaturan form tidak ditemukan', 404)
   return sendSuccess(res, {
     ...setting,
-    programIds: JSON.parse(setting.programIds as string),
+    programIds: setting.programIds ? JSON.parse(setting.programIds as string) : [],
     fields: JSON.parse(setting.fields as string),
   })
 })
 
 export const createCheckoutSetting = catchAsync(async (req: Request, res: Response) => {
-  const { title, programIds, template, fields } = req.body
+  const { title, formType, programIds, template, fields } = req.body
   const slug = generateSlug(title)
-  const setting = await prisma.checkoutSetting.create({
+  const resolvedFormType = formType || 'REGISTER'
+  const resolvedFields = fields || (resolvedFormType === 'AFFILIATE' ? DEFAULT_AFFILIATE_FIELDS : DEFAULT_REGISTER_FIELDS)
+  const setting = await prisma.formSetting.create({
     data: {
       title,
-      programIds: JSON.stringify(programIds || []),
+      formType: resolvedFormType,
+      programIds: resolvedFormType === 'REGISTER' ? JSON.stringify(programIds || []) : undefined,
       template: template || 'default',
-      fields: JSON.stringify(fields || DEFAULT_FIELDS),
+      fields: JSON.stringify(resolvedFields),
       slug,
     },
   })
-  return sendSuccess(res, { ...setting, programIds: JSON.parse(setting.programIds as string), fields: JSON.parse(setting.fields as string) }, 'Pengaturan checkout berhasil dibuat', 201)
+  return sendSuccess(res, {
+    ...setting,
+    programIds: setting.programIds ? JSON.parse(setting.programIds as string) : [],
+    fields: JSON.parse(setting.fields as string),
+  }, 'Pengaturan form berhasil dibuat', 201)
 })
 
 export const updateCheckoutSetting = catchAsync(async (req: Request, res: Response) => {
   const id = req.params.id as string
-  const { title, programIds, template, fields, isActive } = req.body
+  const { title, formType, programIds, template, fields, isActive } = req.body
 
-  const existing = await prisma.checkoutSetting.findUnique({ where: { id } })
-  if (!existing) throw new AppError('Pengaturan checkout tidak ditemukan', 404)
+  const existing = await prisma.formSetting.findUnique({ where: { id } })
+  if (!existing) throw new AppError('Pengaturan form tidak ditemukan', 404)
 
   const data: any = {}
   if (title !== undefined) data.title = title
+  if (formType !== undefined) data.formType = formType
   if (programIds !== undefined) data.programIds = JSON.stringify(programIds)
   if (template !== undefined) data.template = template
   if (fields !== undefined) data.fields = JSON.stringify(fields)
   if (isActive !== undefined) data.isActive = isActive
 
-  const updated = await prisma.checkoutSetting.update({ where: { id }, data })
-  return sendSuccess(res, { ...updated, programIds: JSON.parse(updated.programIds as string), fields: JSON.parse(updated.fields as string) }, 'Pengaturan checkout berhasil diperbarui')
+  const updated = await prisma.formSetting.update({ where: { id }, data })
+  return sendSuccess(res, {
+    ...updated,
+    programIds: updated.programIds ? JSON.parse(updated.programIds as string) : [],
+    fields: JSON.parse(updated.fields as string),
+  }, 'Pengaturan form berhasil diperbarui')
 })
 
 export const deleteCheckoutSetting = catchAsync(async (req: Request, res: Response) => {
-  await prisma.checkoutSetting.delete({ where: { id: req.params.id as string } })
-  return sendSuccess(res, null, 'Pengaturan checkout berhasil dihapus')
+  await prisma.formSetting.delete({ where: { id: req.params.id as string } })
+  return sendSuccess(res, null, 'Pengaturan form berhasil dihapus')
 })
 
 export const getPublicCheckoutForm = catchAsync(async (req: Request, res: Response) => {
   const slug = req.params.slug as string
-  const setting = await prisma.checkoutSetting.findUnique({ where: { slug, isActive: true } })
-  if (!setting) throw new AppError('Form checkout tidak ditemukan atau tidak aktif', 404)
+  const setting = await prisma.formSetting.findUnique({ where: { slug, isActive: true } })
+  if (!setting) throw new AppError('Form tidak ditemukan atau tidak aktif', 404)
+
+  const programs = setting.formType === 'REGISTER' && setting.programIds
+    ? await prisma.program.findMany({
+        where: { id: { in: JSON.parse(setting.programIds as string) }, status: 'AKTIF' },
+        select: { id: true, name: true, fee: true, country: true },
+      })
+    : []
+
   return sendSuccess(res, {
     ...setting,
-    programIds: JSON.parse(setting.programIds as string),
+    programIds: setting.programIds ? JSON.parse(setting.programIds as string) : [],
     fields: JSON.parse(setting.fields as string),
+    programs,
   })
 })
 
 export const submitCheckoutForm = catchAsync(async (req: Request, res: Response) => {
   const slug = req.params.slug as string
+  const setting = await prisma.formSetting.findUnique({ where: { slug, isActive: true } })
+  if (!setting) throw new AppError('Form tidak ditemukan atau tidak aktif', 404)
+
+  const formType = setting.formType
+  const fields: any[] = JSON.parse(setting.fields as string)
+
+  if (formType === 'AFFILIATE') {
+    return submitAffiliateForm(req, res, setting, fields)
+  }
+
+  return submitRegisterForm(req, res, setting, fields)
+})
+
+async function submitRegisterForm(req: Request, res: Response, setting: any, fields: any[]) {
   const { email, password, programId, couponCode, refCode } = req.body
+  const phone = req.body.phone
 
-  const setting = await prisma.checkoutSetting.findUnique({ where: { slug, isActive: true } })
-  if (!setting) throw new AppError('Form checkout tidak ditemukan atau tidak aktif', 404)
+  const enabledFields = fields.filter((f: any) => f.enabled)
+  const requiredFields = enabledFields.filter((f: any) => f.required)
+  for (const field of requiredFields) {
+    if (req.body[field.key] === undefined || req.body[field.key] === null || req.body[field.key] === '') {
+      throw new AppError(`Field ${field.label} wajib diisi`, 400)
+    }
+  }
 
-  const validProgramIds: string[] = JSON.parse(setting.programIds as string)
+  const validProgramIds: string[] = setting.programIds ? JSON.parse(setting.programIds as string) : []
   if (validProgramIds.length > 0 && !validProgramIds.includes(programId)) {
     throw new AppError('Program tidak tersedia untuk form ini', 400)
   }
 
   const existingUser = await prisma.user.findUnique({ where: { email } })
   if (existingUser) throw new AppError('Email sudah terdaftar', 409)
+
+  if (phone) {
+    const existingPhone = await prisma.user.findUnique({ where: { phone } })
+    if (existingPhone) throw new AppError('Nomor WA sudah terdaftar', 409)
+  }
 
   const hashed = await bcrypt.hash(password, 12)
 
@@ -190,14 +252,26 @@ export const submitCheckoutForm = catchAsync(async (req: Request, res: Response)
     }
 
     const user = await tx.user.create({
-      data: { email, password: hashed, role: 'KANDIDAT' },
-      select: { id: true, email: true, role: true, createdAt: true },
+      data: { email, password: hashed, role: 'KANDIDAT', phone: phone || undefined },
+      select: { id: true, email: true, role: true, phone: true, createdAt: true },
     })
 
+    const mappedFields = mapCandidateFields(req.body)
     const candidateData: any = {
       userId: user.id,
       referredBy: validRefCode,
-      ...mapCandidateFields(req.body),
+      fullName: mappedFields.fullName || '',
+      birthPlace: mappedFields.birthPlace || '',
+      birthDate: mappedFields.birthDate || new Date('2000-01-01'),
+      gender: mappedFields.gender || 'LAKI_LAKI',
+      maritalStatus: mappedFields.maritalStatus || 'BELUM_MENIKAH',
+      address: mappedFields.address || '',
+      kecamatan: mappedFields.kecamatan || '',
+      kabupaten: mappedFields.kabupaten || '',
+      provinsi: mappedFields.provinsi || '',
+      lastEducation: mappedFields.lastEducation || '',
+      phone: mappedFields.phone || '',
+      ...mappedFields,
     }
 
     if (!candidateData.nik) {
@@ -255,7 +329,7 @@ export const submitCheckoutForm = catchAsync(async (req: Request, res: Response)
         statusHistory: {
           create: {
             status: fileUrl ? 'SUBMITTED' : 'DRAFT',
-            notes: fileUrl ? 'Pendaftaran melalui form checkout dengan pembayaran' : 'Pendaftaran melalui form checkout',
+            notes: fileUrl ? 'Pendaftaran melalui form dengan pembayaran' : 'Pendaftaran melalui form',
           },
         },
       },
@@ -296,4 +370,63 @@ export const submitCheckoutForm = catchAsync(async (req: Request, res: Response)
     paymentId: result.payment?.id || null,
     paymentStatus: result.payment?.status || 'BELUM_BAYAR',
   }, 'Pendaftaran berhasil', 201)
-})
+}
+
+async function submitAffiliateForm(req: Request, res: Response, setting: any, fields: any[]) {
+  const { email, password, refCode } = req.body
+  const phone = req.body.phone
+
+  const enabledFields = fields.filter((f: any) => f.enabled)
+  const requiredFields = enabledFields.filter((f: any) => f.required)
+  for (const field of requiredFields) {
+    if (req.body[field.key] === undefined || req.body[field.key] === null || req.body[field.key] === '') {
+      throw new AppError(`Field ${field.label} wajib diisi`, 400)
+    }
+  }
+
+  const existingUser = await prisma.user.findUnique({ where: { email } })
+  if (existingUser) throw new AppError('Email sudah terdaftar', 409)
+
+  if (phone) {
+    const existingPhone = await prisma.user.findUnique({ where: { phone } })
+    if (existingPhone) throw new AppError('Nomor WA sudah terdaftar', 409)
+  }
+
+  const hashed = await bcrypt.hash(password, 12)
+  const affiliateCode = `AFF${Date.now().toString(36).toUpperCase()}${Math.random().toString(36).substring(2, 5).toUpperCase()}`
+
+  const result = await prisma.$transaction(async (tx) => {
+    let validRefCode = null
+    if (refCode) {
+      const affiliate = await tx.affiliate.findUnique({ where: { code: refCode } })
+      if (affiliate) {
+        validRefCode = refCode
+        await tx.affiliate.update({
+          where: { code: refCode },
+          data: { totalRegistrations: { increment: 1 } },
+        })
+      }
+    }
+
+    const user = await tx.user.create({
+      data: { email, password: hashed, role: 'AFFILIATE', phone: phone || undefined },
+      select: { id: true, email: true, role: true, phone: true, createdAt: true },
+    })
+
+    const affiliateData: any = {
+      userId: user.id,
+      code: affiliateCode,
+      referredBy: validRefCode,
+      ...mapAffiliateFields(req.body),
+    }
+
+    const affiliate = await tx.affiliate.create({ data: affiliateData })
+
+    return { user, affiliate }
+  })
+
+  return sendSuccess(res, {
+    user: result.user,
+    affiliateCode: result.affiliate.code,
+  }, 'Pendaftaran affiliate berhasil', 201)
+}

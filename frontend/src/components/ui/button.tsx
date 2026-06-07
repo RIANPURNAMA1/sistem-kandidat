@@ -8,12 +8,12 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: 'bg-fb-blue text-white hover:bg-fb-blue-dark active:bg-fb-blue-dark',
+        default: 'bg-[#009ce1] text-white hover:bg-[#007bc4] active:bg-[#007bc4]',
         destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
         outline: 'border border-fb-gray-light bg-white text-foreground hover:bg-fb-gray',
         secondary: 'bg-fb-gray text-foreground hover:bg-fb-gray-light',
         ghost: 'text-foreground hover:bg-fb-gray',
-        link: 'text-fb-blue underline-offset-4 hover:underline',
+        link: 'text-[#009ce1] underline-offset-4 hover:underline',
         'fb-green': 'bg-fb-green text-white hover:bg-fb-green/90',
       },
       size: {

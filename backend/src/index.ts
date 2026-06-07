@@ -9,6 +9,7 @@ import path from 'path';
 import { router } from './routes';
 import { errorHandler } from './middlewares/errorHandler';
 import { logger } from './utils/logger';
+import { startScheduler } from './services/schedulerService';
 
 dotenv.config();
 
@@ -54,6 +55,7 @@ app.get('/health', (_, res) => res.json({ status: 'ok', timestamp: new Date().to
 
 app.listen(PORT, () => {
   logger.info(`Server running on port ${PORT}`);
+  startScheduler().catch(err => logger.error('Failed to start scheduler:', err));
 });
 
 export default app;

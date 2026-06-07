@@ -318,7 +318,7 @@ export const getInvoice = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-export const autoVerifyPayments = catchAsync(async (req: Request, res: Response) => {
+export async function autoVerifyCore(verifiedBy: string): Promise<{ verified: number; skipped: number; results: { id: string; status: string; reason?: string }[] }> {
   const pendingPayments = await prisma.payment.findMany({
     where: { status: 'MENUNGGU_VERIFIKASI' },
     include: {
@@ -350,20 +350,17 @@ export const autoVerifyPayments = catchAsync(async (req: Request, res: Response)
         continue;
       }
 
-      const programFee = Number(program.fee);
-      const tolerance = programFee * 0.01;
-      const amountMatch = Math.abs(ocrAmount - programFee) <= tolerance;
+      const requiredAmount = Number(payment.amount);
 
-      if (!amountMatch) {
+      if (ocrAmount < requiredAmount) {
         skipped++;
-        results.push({ id: payment.id, status: 'SKIPPED', reason: `Nominal OCR ${ocrAmount} tidak sesuai ${programFee}` });
+        results.push({ id: payment.id, status: 'SKIPPED', reason: `Nilai transfer ${ocrAmount} kurang dari ${requiredAmount}` });
         continue;
       }
 
-      // Auto-approve
       await prisma.payment.update({
         where: { id: payment.id },
-        data: { status: 'VALID', verifiedAt: new Date(), verifiedBy: req.user!.userId },
+        data: { status: 'VALID', verifiedAt: new Date(), verifiedBy },
       });
 
       await prisma.application.update({
@@ -371,12 +368,11 @@ export const autoVerifyPayments = catchAsync(async (req: Request, res: Response)
         data: {
           status: 'PAID',
           statusHistory: {
-            create: { status: 'PAID', notes: 'Pembayaran auto-verified via OCR', changedBy: req.user!.userId },
+            create: { status: 'PAID', notes: 'Pembayaran auto-verified via OCR', changedBy: verifiedBy },
           },
         },
       });
 
-      // Affiliate commission
       if (payment.candidate?.referredBy) {
         const affiliate = await prisma.affiliate.findUnique({
           where: { code: payment.candidate.referredBy },
@@ -396,7 +392,6 @@ export const autoVerifyPayments = catchAsync(async (req: Request, res: Response)
         }
       }
 
-      // Notify candidate
       notifyPaymentVerified(payment.id);
 
       verified++;
@@ -407,7 +402,12 @@ export const autoVerifyPayments = catchAsync(async (req: Request, res: Response)
     }
   }
 
-  return sendSuccess(res, { verified, skipped, results }, `${verified} pembayaran berhasil auto-verified`);
+  return { verified, skipped, results };
+}
+
+export const autoVerifyPayments = catchAsync(async (req: Request, res: Response) => {
+  const result = await autoVerifyCore(req.user!.userId);
+  return sendSuccess(res, result, `${result.verified} pembayaran berhasil auto-verified`);
 });
 
 export const getPendingPaymentCount = catchAsync(async (req: Request, res: Response) => {

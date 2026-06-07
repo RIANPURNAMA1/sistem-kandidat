@@ -14,6 +14,8 @@ import couponRoutes from './couponRoutes';
 import followUpRoutes from './followUpRoutes';
 import rewardRoutes from './rewardRoutes';
 import checkoutRoutes from './checkoutRoutes';
+import memberAreaRoutes from './memberAreaRoutes';
+import lmsRoutes from './lmsRoutes';
 
 export const router = Router();
 
@@ -32,3 +34,5 @@ router.use('/coupons', couponRoutes);
 router.use('/follow-ups', followUpRoutes);
 router.use('/rewards', rewardRoutes);
 router.use('/checkout', checkoutRoutes);
+router.use('/member-areas', memberAreaRoutes);
+router.use('/lms', lmsRoutes);

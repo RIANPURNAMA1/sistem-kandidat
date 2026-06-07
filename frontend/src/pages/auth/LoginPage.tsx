@@ -280,11 +280,17 @@ export default function LoginPage() {
         )}
 
         {/* Register Link */}
-        <div className="mt-6 text-center">
+        <div className="mt-6 space-y-2 text-center">
           <p className="text-xs text-muted-foreground">
             Belum punya akun?{' '}
             <a href="/register" className="text-foreground font-medium hover:text-primary transition-colors">
               Daftar di sini
+            </a>
+          </p>
+          <p className="text-xs text-muted-foreground/70">
+            Atau daftar sebagai{' '}
+            <a href="/register/affiliate" className="text-[#009ce1] font-medium hover:text-[#007bc4] transition-colors">
+              Affiliate Partner →
             </a>
           </p>
         </div>

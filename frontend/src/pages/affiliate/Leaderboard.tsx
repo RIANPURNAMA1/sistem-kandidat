@@ -11,7 +11,7 @@ const BAR_GRADIENTS = [
   'from-slate-300 to-slate-400',
   'from-orange-400 to-orange-500',
   'from-blue-500 to-blue-600',
-  'from-purple-500 to-purple-600',
+  'from-[#009ce1] to-[#007bc4]',
   'from-emerald-400 to-emerald-500',
   'from-pink-400 to-pink-500',
   'from-cyan-400 to-cyan-500',
@@ -67,7 +67,7 @@ export default function AffiliateLeaderboardPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-lg bg-yellow-100 flex items-center justify-center">
+          <div className="h-8 w-8 rounded-sm bg-yellow-100 flex items-center justify-center">
             <Trophy className="h-4 w-4 text-yellow-600" />
           </div>
           <div>
@@ -75,12 +75,12 @@ export default function AffiliateLeaderboardPage() {
             <p className="text-xs text-slate-400">Ranking berdasarkan performa affiliate</p>
           </div>
         </div>
-        <div className="flex items-center bg-white border border-slate-200 rounded-lg p-0.5 shadow-sm">
+        <div className="flex items-center bg-white border border-[#009ce1]/20 rounded-sm p-0.5 shadow-sm">
           <button
             onClick={() => setViewMode('table')}
             className={cn(
-              'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all',
-              viewMode === 'table' ? 'bg-indigo-50 text-indigo-700 shadow-sm' : 'text-slate-400 hover:text-slate-600'
+              'flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-semibold transition-all',
+              viewMode === 'table' ? 'bg-[#009ce1]/10 text-[#009ce1] shadow-sm' : 'text-slate-400 hover:text-slate-600'
             )}
           >
             <Table2 className="h-3.5 w-3.5" /> Tabel
@@ -88,8 +88,8 @@ export default function AffiliateLeaderboardPage() {
           <button
             onClick={() => setViewMode('chart')}
             className={cn(
-              'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all',
-              viewMode === 'chart' ? 'bg-indigo-50 text-indigo-700 shadow-sm' : 'text-slate-400 hover:text-slate-600'
+              'flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-semibold transition-all',
+              viewMode === 'chart' ? 'bg-[#009ce1]/10 text-[#009ce1] shadow-sm' : 'text-slate-400 hover:text-slate-600'
             )}
           >
             <BarChart3 className="h-3.5 w-3.5" /> Grafik
@@ -100,12 +100,12 @@ export default function AffiliateLeaderboardPage() {
       {/* Sort Filters */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div className="flex flex-wrap gap-1.5">
-          {sorts.map(s => (
+            {sorts.map(s => (
             <button key={s.key} onClick={() => setSortBy(s.key)}
               className={cn(
-                'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all',
+                'flex items-center gap-1.5 px-3 py-1.5 rounded-sm text-xs font-semibold border transition-all',
                 sortBy === s.key
-                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                  ? 'bg-[#009ce1] text-white border-[#009ce1] shadow-sm'
                   : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300 hover:text-slate-700'
               )}>
               <s.icon className="h-3 w-3" />{s.label}
@@ -121,7 +121,7 @@ export default function AffiliateLeaderboardPage() {
 
       {/* Loading */}
       {isLoading && (
-        <div className="rounded-xl border border-slate-200 bg-white p-8 animate-pulse">
+        <div className="rounded-sm border border-slate-200 bg-white p-8 animate-pulse">
           <div className="space-y-4">
             {[...Array(8)].map((_, i) => (
               <div key={i} className="flex items-center gap-4">
@@ -137,25 +137,25 @@ export default function AffiliateLeaderboardPage() {
 
       {/* ── TABLE VIEW ── */}
       {!isLoading && viewMode === 'table' && (
-        <div className="overflow-x-auto rounded-xl border border-slate-200 shadow-sm bg-white">
+        <div className="overflow-x-auto rounded-sm border border-[#009ce1]/20 shadow-sm bg-white">
           <table className="w-full text-xs border-collapse">
             <thead>
-              <tr className="bg-slate-50 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                <th className="px-5 py-3.5 text-center border border-slate-200 w-16">Rank</th>
-                <th className="px-5 py-3.5 text-left border border-slate-200">Affiliate</th>
-                <th className="px-5 py-3.5 text-center border border-slate-200">Klik</th>
-                <th className="px-5 py-3.5 text-center border border-slate-200">Kandidat</th>
-                <th className="px-5 py-3.5 text-center border border-slate-200">Paid</th>
-                <th className="px-5 py-3.5 text-right border border-slate-200">Total Komisi</th>
+              <tr className="bg-fb-gray/30 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                <th className="px-5 py-3.5 text-center border border-[#009ce1]/10 w-16">Rank</th>
+                <th className="px-5 py-3.5 text-left border border-[#009ce1]/10">Affiliate</th>
+                <th className="px-5 py-3.5 text-center border border-[#009ce1]/10">Klik</th>
+                <th className="px-5 py-3.5 text-center border border-[#009ce1]/10">Kandidat</th>
+                <th className="px-5 py-3.5 text-center border border-[#009ce1]/10">Paid</th>
+                <th className="px-5 py-3.5 text-right border border-[#009ce1]/10">Total Komisi</th>
               </tr>
             </thead>
             <tbody>
               {data?.map((a: any, idx: number) => (
                 <tr key={a.code} className={cn(
-                  "hover:bg-slate-50/60 transition-colors",
+                  "hover:bg-fb-gray/30 transition-colors",
                   idx === 0 ? 'bg-yellow-50/20' : idx === 1 ? 'bg-slate-50/20' : idx === 2 ? 'bg-orange-50/20' : ''
                 )}>
-                  <td className="px-5 py-3.5 text-center border border-slate-200">
+                  <td className="px-5 py-3.5 text-center border border-[#009ce1]/10">
                     {idx < 3 ? (
                       <div className={cn(
                         "inline-flex items-center justify-center h-7 w-7 rounded-full font-bold text-[10px] shadow-sm",
@@ -167,14 +167,14 @@ export default function AffiliateLeaderboardPage() {
                       <span className="font-semibold text-slate-400 text-[10px]">#{idx + 1}</span>
                     )}
                   </td>
-                  <td className="px-5 py-3.5 border border-slate-200">
+                  <td className="px-5 py-3.5 border border-[#009ce1]/10">
                     <div className="font-semibold text-slate-900">{a.name || a.email || a.code}</div>
                     <div className="text-[10px] text-slate-400 font-mono mt-0.5">{a.code}</div>
                   </td>
-                  <td className="px-5 py-3.5 text-center border border-slate-200 font-medium text-slate-600">{a.totalClicks?.toLocaleString()}</td>
-                  <td className="px-5 py-3.5 text-center border border-slate-200 font-medium text-slate-600">{a.totalRegistrations?.toLocaleString()}</td>
-                  <td className="px-5 py-3.5 text-center border border-slate-200 font-medium text-slate-600">{a.totalPaid?.toLocaleString()}</td>
-                  <td className="px-5 py-3.5 text-right border border-slate-200">
+                  <td className="px-5 py-3.5 text-center border border-[#009ce1]/10 font-medium text-slate-600">{a.totalClicks?.toLocaleString()}</td>
+                  <td className="px-5 py-3.5 text-center border border-[#009ce1]/10 font-medium text-slate-600">{a.totalRegistrations?.toLocaleString()}</td>
+                  <td className="px-5 py-3.5 text-center border border-[#009ce1]/10 font-medium text-slate-600">{a.totalPaid?.toLocaleString()}</td>
+                  <td className="px-5 py-3.5 text-right border border-[#009ce1]/10">
                     <span className="font-bold text-emerald-600">{formatCurrency(a.totalCommission)}</span>
                   </td>
                 </tr>
@@ -197,10 +197,10 @@ export default function AffiliateLeaderboardPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {top3.map((a: any, idx: number) => (
                 <div key={a.code} className={cn(
-                  "relative rounded-xl border-2 p-5 bg-white overflow-hidden",
-                  idx === 0 ? 'border-yellow-300 shadow-lg shadow-yellow-100' :
-                  idx === 1 ? 'border-slate-200 shadow-md' :
-                  'border-orange-200 shadow-md'
+                  "relative rounded-sm border-2 p-5 bg-white overflow-hidden",
+                    idx === 0 ? 'border-yellow-300 shadow-lg shadow-yellow-100' :
+                    idx === 1 ? 'border-[#009ce1]/30 shadow-md' :
+                    'border-orange-200 shadow-md'
                 )}>
                   {/* Decorative top bar */}
                   <div className={cn(
@@ -238,7 +238,7 @@ export default function AffiliateLeaderboardPage() {
                     </div>
                   </div>
                   {/* Mini stats row */}
-                  <div className="mt-4 grid grid-cols-3 gap-2 pt-3 border-t border-slate-100">
+                  <div className="mt-4 grid grid-cols-3 gap-2 pt-3 border-t border-[#009ce1]/10">
                     {sorts.filter(s => s.key !== sortBy).map(s => (
                       <div key={s.key} className="text-center">
                         <s.icon className="h-3 w-3 mx-auto mb-0.5 text-slate-400" />
@@ -254,10 +254,10 @@ export default function AffiliateLeaderboardPage() {
 
           {/* Full Ranking Bars */}
           {listData.length > 0 && (
-            <div className="rounded-xl border border-slate-200 shadow-sm bg-white overflow-hidden">
-              <div className="px-5 py-3.5 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+            <div className="rounded-sm border border-[#009ce1]/20 shadow-sm bg-white overflow-hidden">
+              <div className="px-5 py-3.5 border-b border-[#009ce1]/10 bg-fb-gray/30 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <MetricIcon className="h-3.5 w-3.5 text-indigo-600" />
+                  <MetricIcon className="h-3.5 w-3.5 text-[#009ce1]" />
                   <span className="text-xs font-bold text-slate-700">Peringkat Lengkap — {sortLabel}</span>
                 </div>
                 <span className="text-[10px] text-slate-400">{listData.length} affiliate</span>
@@ -266,7 +266,7 @@ export default function AffiliateLeaderboardPage() {
                 {listData.map((a: any, idx: number) => {
                   const pct = maxVal > 0 ? ((a[sortBy] || 0) / maxVal) * 100 : 0
                   return (
-                    <div key={a.code} className="group flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors">
+                    <div key={a.code} className="group flex items-center gap-3 px-3 py-2 rounded-sm hover:bg-slate-50 transition-colors">
                       {/* Rank */}
                       <div className="w-7 flex-shrink-0 text-center">
                         {idx < 3 ? (
@@ -284,9 +284,9 @@ export default function AffiliateLeaderboardPage() {
                       </div>
                       {/* Bar */}
                       <div className="flex-1 min-w-0">
-                        <div className="h-6 w-full bg-slate-100 rounded-md overflow-hidden relative">
+                        <div className="h-6 w-full bg-slate-100 rounded-sm overflow-hidden relative">
                           <div
-                            className={cn("h-full rounded-md bg-gradient-to-r transition-all duration-500", getGradient(idx))}
+                            className={cn("h-full rounded-sm bg-gradient-to-r transition-all duration-500", getGradient(idx))}
                             style={{ width: `${Math.max(pct, 2)}%` }}
                           />
                         </div>
@@ -315,7 +315,7 @@ export default function AffiliateLeaderboardPage() {
           )}
 
           {listData.length === 0 && (
-            <div className="rounded-xl border border-slate-200 bg-white p-14 text-center">
+            <div className="rounded-sm border border-slate-200 bg-white p-14 text-center">
               <Trophy className="h-10 w-10 text-slate-200 mx-auto mb-3" />
               <p className="text-xs text-slate-400">Belum ada data leaderboard.</p>
             </div>

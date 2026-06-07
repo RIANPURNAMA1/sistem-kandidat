@@ -1,22 +1,21 @@
 import { useQuery } from '@tanstack/react-query'
 import { CreditCard, CheckCircle, XCircle, Award } from 'lucide-react'
-import { Card, CardContent } from '@/components/ui/index'
 import { formatCurrency } from '@/lib/utils'
 import api from '@/services/api'
 
 function KPI({ label, value, icon: Icon, color }: any) {
   return (
-    <Card>
-      <CardContent className="p-5 flex items-center gap-4">
-        <div className={`h-12 w-12 rounded-lg flex items-center justify-center ${color}`}>
+    <div className="bg-white border border-[#009ce1]/20 rounded-sm p-5 hover:shadow-md hover:border-[#009ce1]/30 transition-all">
+      <div className="flex items-center gap-4">
+        <div className={`h-12 w-12 rounded-sm flex items-center justify-center ${color}`}>
           <Icon className="h-6 w-6 text-white" />
         </div>
         <div>
           <p className="text-sm font-bold">{value}</p>
           <p className="text-[10px] text-muted-foreground">{label}</p>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }
 
@@ -37,12 +36,10 @@ export default function FinanceDashboardPage() {
         <KPI label="Pembayaran Ditolak" value={data?.paymentSummary?.rejected || 0} icon={XCircle} color="bg-red-500" />
         <KPI label="Komisi Pending" value={data?.commissionPending || 0} icon={Award} color="bg-purple-600" />
       </div>
-      <Card>
-        <CardContent className="p-5">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Pendapatan Bulan Ini</p>
-          <p className="text-sm font-bold text-fb-blue mt-1">{formatCurrency(data?.monthlyRevenue || 0)}</p>
-        </CardContent>
-      </Card>
+      <div className="bg-white border border-[#009ce1]/20 rounded-sm p-5 hover:shadow-md hover:border-[#009ce1]/30 transition-all">
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Pendapatan Bulan Ini</p>
+        <p className="text-sm font-bold text-fb-blue mt-1">{formatCurrency(data?.monthlyRevenue || 0)}</p>
+      </div>
     </div>
   )
 }

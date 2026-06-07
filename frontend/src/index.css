@@ -25,7 +25,7 @@
     --border: 220 14% 92%;
     --input: 220 14% 92%;
     --ring: 242 67% 21%;
-    --radius: 0.5rem;
+    --radius: 0.75rem;
   }
 
   .dark {
@@ -84,10 +84,10 @@
   }
 
   .fb-card {
-    @apply bg-white rounded-lg border border-border/60 shadow-sm;
+    @apply bg-white rounded-sm border border-[#009ce1]/20 shadow-sm;
   }
   .fb-card-header {
-    @apply px-5 py-4 border-b border-border/40;
+    @apply px-5 py-4 border-b border-[#009ce1]/10;
   }
   .fb-card-body {
     @apply px-5 py-4;

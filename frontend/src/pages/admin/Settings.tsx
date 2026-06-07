@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import { Card, CardContent } from '@/components/ui/index'
-import { Settings, Mail, MessageSquare, CreditCard, Globe, ScanLine, Tag, Gift, ShoppingCart, FolderTree } from 'lucide-react'
+import { Settings, Mail, MessageSquare, CreditCard, Globe, ScanLine, Tag, Gift, FileText, FolderTree } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import EmailSettingsForm from './EmailSettingsForm'
 import WhatsAppSettingsForm from './WhatsAppSettingsForm'
 import RekeningSettingsForm from './RekeningSettingsForm'
 import AffiliateSettingsForm from './AffiliateSettingsForm'
-import CheckoutSettingsForm from './CheckoutSettingsForm'
+import FormSettings from './FormSettings'
 import ProgramCategoryForm from './ProgramCategoryForm'
+import OcrSettingsForm from './OcrSettingsForm'
 
 const sections = [
   { icon: Globe, label: 'Pengaturan Website', desc: 'Nama situs, tagline, alamat, kontak' },
@@ -16,7 +17,7 @@ const sections = [
   { icon: Mail, label: 'Pengaturan Email', desc: 'SMTP, template email notifikasi' },
   { icon: CreditCard, label: 'Pengaturan Rekening', desc: 'Rekening tujuan pembayaran' },
   { icon: Settings, label: 'Pengaturan Affiliate', desc: 'Minimum pencairan, komisi default' },
-  { icon: ShoppingCart, label: 'Pengaturan Checkout', desc: 'Form pendaftaran/checkout kandidat' },
+  { icon: FileText, label: 'Pengaturan Form', desc: 'Form pendaftaran kandidat' },
   { icon: Tag, label: 'Kupon Diskon', desc: 'Kelola kode kupon dan diskon' },
   { icon: Gift, label: 'Reward', desc: 'Kelola reward dan penukaran poin affiliate' },
   { icon: FolderTree, label: 'Kategori Program', desc: 'CRUD kategori untuk program' },
@@ -56,12 +57,8 @@ export default function AdminSettingsPage() {
     )
   }
 
-  if (activeSection === 'Pengaturan Checkout') {
-    return (
-      <div className="space-y-6">
-        <CheckoutSettingsForm />
-      </div>
-    )
+  if (activeSection === 'Pengaturan Form') {
+    return <FormSettings onBack={() => setActiveSection(null)} />
   }
 
   if (activeSection === 'Pengaturan Email') {
@@ -132,6 +129,24 @@ export default function AdminSettingsPage() {
             <p className="text-xs text-muted-foreground">API gateway, start/stop sender, template pesan</p>
         </div>
         <WhatsAppSettingsForm />
+      </div>
+    )
+  }
+
+  if (activeSection === 'Pengaturan OCR') {
+    return (
+      <div className="space-y-6">
+        <button
+          onClick={() => setActiveSection(null)}
+          className="text-xs text-indigo-600 hover:text-indigo-800 font-medium"
+        >
+          ← Kembali
+        </button>
+        <div>
+          <h1 className="text-lg font-bold">Pengaturan OCR</h1>
+            <p className="text-xs text-muted-foreground">Threshold confidence, auto-verifikasi</p>
+        </div>
+        <OcrSettingsForm />
       </div>
     )
   }

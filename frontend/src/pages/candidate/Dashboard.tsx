@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { FileText, CreditCard, ClipboardList, AlertCircle, CheckCircle, Clock } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/index'
 import { Button } from '@/components/ui/button'
 import { formatCurrency, formatDate, getStatusColor, getStatusLabel } from '@/lib/utils'
 import { useAuthStore } from '@/stores/authStore'
@@ -25,7 +24,7 @@ export default function CandidateDashboard() {
   return (
     <div className="space-y-6">
       {/* Welcome banner - Facebook blue */}
-      <div className="bg-[#009ce1] rounded-lg p-6 text-white">
+      <div className="bg-[#009ce1] rounded-sm p-6 text-white">
         <h1 className="text-sm font-bold">
           Selamat datang, {profile?.fullName || user?.email}
         </h1>
@@ -34,7 +33,7 @@ export default function CandidateDashboard() {
 
       {/* Alerts */}
       {pendingPayments > 0 && (
-        <div className="flex items-center gap-3 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+        <div className="flex items-center gap-3 p-4 bg-orange-50 border border-orange-200 rounded-sm">
           <AlertCircle className="h-5 w-5 text-orange-500 flex-shrink-0" />
           <div className="flex-1">
             <p className="text-xs font-medium text-orange-800">Pembayaran Menunggu Upload</p>
@@ -47,7 +46,7 @@ export default function CandidateDashboard() {
       )}
 
       {!profile && (
-        <div className="flex items-center gap-3 p-4 bg-fb-blue-light border border-fb-blue/20 rounded-lg">
+        <div className="flex items-center gap-3 p-4 bg-fb-blue-light border border-fb-blue/20 rounded-sm">
           <AlertCircle className="h-5 w-5 text-fb-blue flex-shrink-0" />
           <div className="flex-1">
             <p className="text-xs font-medium text-fb-blue">Profil Belum Lengkap</p>
@@ -61,45 +60,47 @@ export default function CandidateDashboard() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="p-5 flex items-center gap-4">
-            <div className="h-12 w-12 bg-fb-blue-light rounded-lg flex items-center justify-center">
+        <div className="bg-white border border-[#009ce1]/20 rounded-sm p-5 hover:shadow-md hover:border-[#009ce1]/30 transition-all">
+          <div className="flex items-center gap-4">
+            <div className="h-12 w-12 bg-fb-blue-light rounded-sm flex items-center justify-center">
               <ClipboardList className="h-6 w-6 text-fb-blue" />
             </div>
             <div>
               <p className="text-sm font-bold">{applications.length}</p>
               <p className="text-[10px] text-muted-foreground">Pendaftaran</p>
             </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-5 flex items-center gap-4">
-            <div className="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
+          </div>
+        </div>
+        <div className="bg-white border border-[#009ce1]/20 rounded-sm p-5 hover:shadow-md hover:border-[#009ce1]/30 transition-all">
+          <div className="flex items-center gap-4">
+            <div className="h-12 w-12 bg-green-100 rounded-sm flex items-center justify-center">
               <FileText className="h-6 w-6 text-green-600" />
             </div>
             <div>
               <p className="text-sm font-bold">{completedDocs}/{documents.length}</p>
               <p className="text-[10px] text-muted-foreground">Dokumen Terverifikasi</p>
             </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-5 flex items-center gap-4">
-            <div className="h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center">
+          </div>
+        </div>
+        <div className="bg-white border border-[#009ce1]/20 rounded-sm p-5 hover:shadow-md hover:border-[#009ce1]/30 transition-all">
+          <div className="flex items-center gap-4">
+            <div className="h-12 w-12 bg-purple-100 rounded-sm flex items-center justify-center">
               <CreditCard className="h-6 w-6 text-purple-600" />
             </div>
             <div>
               <p className="text-sm font-bold">{applications.filter((a: any) => a.payment?.status === 'VALID').length}</p>
               <p className="text-[10px] text-muted-foreground">Pembayaran Valid</p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Applications timeline */}
-      <Card>
-        <CardHeader><CardTitle className="text-xs">Status Pendaftaran</CardTitle></CardHeader>
-        <CardContent>
+      <div className="bg-white border border-[#009ce1]/20 rounded-sm overflow-hidden hover:shadow-md hover:border-[#009ce1]/30 transition-all">
+        <div className="px-5 py-4 border-b border-[#009ce1]/10">
+          <h3 className="text-xs font-semibold text-fb-blue">Status Pendaftaran</h3>
+        </div>
+        <div className="p-5">
           {applications.length === 0 ? (
             <div className="text-center py-10">
               <ClipboardList className="h-12 w-12 text-muted-foreground/30 mx-auto mb-3" />
@@ -109,7 +110,7 @@ export default function CandidateDashboard() {
           ) : (
             <div className="space-y-4">
               {applications.map((app: any) => (
-                <div key={app.id} className="border border-fb-gray-light rounded-lg p-4">
+                <div key={app.id} className="border border-[#009ce1]/20 rounded-sm p-4 hover:shadow-md hover:border-[#009ce1]/30 transition-all">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-semibold truncate">{app.program?.name}</p>
@@ -145,8 +146,8 @@ export default function CandidateDashboard() {
               ))}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   )
 }

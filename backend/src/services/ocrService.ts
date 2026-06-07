@@ -1,7 +1,15 @@
 import { GoogleGenAI } from '@google/genai';
+import OpenAI from 'openai';
 import { logger } from '../utils/logger';
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
+const gemini = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
+const groq = new OpenAI({
+  apiKey: process.env.GROQ_API_KEY || '',
+  baseURL: 'https://api.groq.com/openai/v1',
+});
+
+const GROQ_MODEL = 'llama-3.3-70b-versatile';
+const GROQ_VISION_MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct';
 
 export interface OcrResult {
   senderName: string | null;
@@ -49,82 +57,35 @@ Rules:
 - isValid = true if image clearly shows a payment/transfer receipt (bank or e-wallet)
 - if image is blurry/unreadable or not a payment receipt, set confidence to a low value and isValid to false`;
 
-export async function processPaymentProof(imageBuffer: Buffer, mimeType: string): Promise<OcrResult> {
-  try {
-    logger.info(`Starting OCR, size: ${imageBuffer.length} bytes, type: ${mimeType}`);
+function isGeminiQuotaError(error: any): boolean {
+  const msg = error?.message?.toLowerCase() || '';
+  const status = error?.status || error?.response?.status;
+  return msg.includes('quota') || msg.includes('rate limit') || msg.includes('429') || 
+         status === 429 || status === 403 || msg.includes('resource has been exhausted');
+}
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: [
-        {
-          role: 'user',
-          parts: [
-            {
-              inlineData: {
-                mimeType: mimeType,
-                data: imageBuffer.toString('base64'),
-              },
-            },
-            { text: OCR_PROMPT },
-          ],
-        },
-      ],
-    });
-
-    const text = response.text ?? '';
-    logger.info(`Gemini raw response (first 500 chars): ${text.substring(0, 500)}`);
-
-    let parsed: Record<string, unknown> | null = null;
-
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
+function parseOcrResponse(text: string): Record<string, unknown> | null {
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (jsonMatch) {
+    try {
+      return JSON.parse(jsonMatch[0]);
+    } catch {
+      const stripped = text
+        .replace(/```json\n?/gi, '')
+        .replace(/```\n?/gi, '')
+        .trim();
       try {
-        parsed = JSON.parse(jsonMatch[0]);
+        return JSON.parse(stripped);
       } catch {
-        const stripped = text
-          .replace(/```json\n?/gi, '')
-          .replace(/```\n?/gi, '')
-          .trim();
-        try {
-          parsed = JSON.parse(stripped);
-        } catch (e2) {
-          logger.error('JSON parse failed:', e2);
-        }
+        logger.error('JSON parse failed from OCR response');
       }
     }
+  }
+  return null;
+}
 
-    if (!parsed) {
-      throw new Error(`Could not parse Gemini response as JSON: ${text.substring(0, 300)}`);
-    }
-
-    logger.info(`OCR parsed: ${JSON.stringify(parsed)}`);
-
-    const confidence =
-      typeof parsed.confidence === 'number'
-        ? parsed.confidence
-        : parseFloat(String(parsed.confidence || '0')) || 0;
-
-    return {
-      senderName: (parsed.senderName as string) || null,
-      receiverName: (parsed.receiverName as string) || null,
-      amount:
-        parsed.amount !== undefined && parsed.amount !== null && parsed.amount !== ''
-          ? parseFloat(String(parsed.amount).replace(/[^0-9.]/g, '')) || null
-          : null,
-      bankFrom: (parsed.bankFrom as string) || null,
-      bankTo: (parsed.bankTo as string) || null,
-      referenceNumber: (parsed.referenceNumber as string) || null,
-      transferDate: (parsed.transferDate as string) || null,
-      transferTime: (parsed.transferTime as string) || null,
-      confidence,
-      rawJson: parsed,
-      isValid: Boolean(parsed.isValid),
-    };
-  } catch (error: any) {
-    logger.error('OCR processing error:', {
-      message: error.message,
-      status: error.status,
-    });
+function buildOcrResult(parsed: Record<string, unknown> | null, error?: string): OcrResult {
+  if (!parsed) {
     return {
       senderName: null,
       receiverName: null,
@@ -135,9 +96,116 @@ export async function processPaymentProof(imageBuffer: Buffer, mimeType: string)
       transferDate: null,
       transferTime: null,
       confidence: 0,
-      rawJson: { error: String(error.message || error) },
+      rawJson: { error: error || 'Could not parse response' },
       isValid: false,
     };
+  }
+
+  const confidence =
+    typeof parsed.confidence === 'number'
+      ? parsed.confidence
+      : parseFloat(String(parsed.confidence || '0')) || 0;
+
+  return {
+    senderName: (parsed.senderName as string) || null,
+    receiverName: (parsed.receiverName as string) || null,
+    amount:
+      parsed.amount !== undefined && parsed.amount !== null && parsed.amount !== ''
+        ? parseFloat(String(parsed.amount).replace(/[^0-9.]/g, '')) || null
+        : null,
+    bankFrom: (parsed.bankFrom as string) || null,
+    bankTo: (parsed.bankTo as string) || null,
+    referenceNumber: (parsed.referenceNumber as string) || null,
+    transferDate: (parsed.transferDate as string) || null,
+    transferTime: (parsed.transferTime as string) || null,
+    confidence,
+    rawJson: parsed,
+    isValid: Boolean(parsed.isValid),
+  };
+}
+
+export async function processPaymentProof(imageBuffer: Buffer, mimeType: string): Promise<OcrResult> {
+  try {
+    logger.info(`Starting OCR, size: ${imageBuffer.length} bytes, type: ${mimeType}`);
+
+    // Primary: Gemini (supports vision)
+    try {
+      const response = await gemini.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              {
+                inlineData: {
+                  mimeType: mimeType,
+                  data: imageBuffer.toString('base64'),
+                },
+              },
+              { text: OCR_PROMPT },
+            ],
+          },
+        ],
+      });
+
+      const text = response.text ?? '';
+      logger.info(`Gemini OCR raw response (first 500 chars): ${text.substring(0, 500)}`);
+
+      const parsed = parseOcrResponse(text);
+      if (!parsed) {
+        throw new Error(`Could not parse Gemini response as JSON: ${text.substring(0, 300)}`);
+      }
+
+      logger.info(`Gemini OCR parsed: ${JSON.stringify(parsed)}`);
+      return buildOcrResult(parsed);
+    } catch (geminiError: any) {
+      logger.error('Gemini OCR failed:', {
+        message: geminiError.message,
+        status: geminiError.status,
+      });
+
+      logger.info('OCR switching to Groq vision fallback');
+
+      const base64Data = imageBuffer.toString('base64');
+      const dataUrl = `data:${mimeType};base64,${base64Data}`;
+
+      try {
+        logger.info(`Trying Groq vision model: ${GROQ_VISION_MODEL}`);
+        const groqResponse = await groq.chat.completions.create({
+          model: GROQ_VISION_MODEL,
+          messages: [
+            {
+              role: 'user',
+              content: [
+                { type: 'text', text: OCR_PROMPT },
+                { type: 'image_url', image_url: { url: dataUrl } },
+              ],
+            },
+          ],
+          temperature: 0.1,
+          max_tokens: 1024,
+        });
+
+        const text = groqResponse.choices?.[0]?.message?.content || '';
+        logger.info(`Groq ${GROQ_VISION_MODEL} raw response (first 500 chars): ${text.substring(0, 500)}`);
+
+        const parsed = parseOcrResponse(text);
+        if (parsed) {
+          logger.info(`Groq ${GROQ_VISION_MODEL} OCR parsed: ${JSON.stringify(parsed)}`);
+          return buildOcrResult(parsed);
+        }
+        throw new Error(`Could not parse Groq ${GROQ_VISION_MODEL} response as JSON: ${text.substring(0, 300)}`);
+      } catch (err: any) {
+        logger.warn(`Groq ${GROQ_VISION_MODEL} failed:`, { message: err.message, status: err.status });
+        return buildOcrResult(null, err.message || 'OCR tidak tersedia saat ini. Silakan coba lagi nanti atau verifikasi manual.');
+      }
+    }
+  } catch (error: any) {
+    logger.error('OCR processing error:', {
+      message: error.message,
+      status: error.status,
+    });
+    return buildOcrResult(null, error.message || 'OCR processing failed');
   }
 }
 

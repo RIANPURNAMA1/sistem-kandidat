@@ -4,7 +4,7 @@ import {
   Users, BookOpen, TrendingUp, DollarSign, Clock,
   CheckCircle, Award, Copy, ExternalLink, UserPlus, Calendar,
   Search, ArrowUpRight, Activity, GraduationCap,
-  ShieldCheck, AlertTriangle, LogIn, UserCheck,
+  ShieldCheck, AlertTriangle, LogIn, UserCheck, FileText,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui'
@@ -15,6 +15,7 @@ import {
   ResponsiveContainer, AreaChart, Area, BarChart, Bar,
   PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip,
 } from 'recharts'
+import FinancialReportModal from '@/components/FinancialReportModal'
 
 const STATUS_COLORS: Record<string, string> = {
   ACCEPTED: '#10B981', INTERVIEW: '#3B82F6', REVIEW: '#F59E0B',
@@ -41,8 +42,8 @@ const PAYMENT_LABELS: Record<string, string> = {
 function ChartTooltip({ active, payload, label, formatter }: any) {
   if (!active || !payload?.length) return null
   return (
-    <div className="bg-white border border-fb-gray-light rounded-lg shadow-sm p-3 text-xs">
-      <p className="font-semibold text-fb-blue mb-2 pb-1 border-b border-fb-gray-light">{label}</p>
+    <div className="bg-white border border-[#009ce1]/20 rounded-sm shadow-sm p-3 text-xs">
+      <p className="font-semibold text-fb-blue mb-2 pb-1 border-b border-[#009ce1]/10">{label}</p>
       <div className="space-y-1.5">
         {payload.map((p: any, i: number) => (
           <div key={i} className="flex items-center justify-between gap-6">
@@ -62,7 +63,7 @@ function ChartTooltip({ active, payload, label, formatter }: any) {
 
 const kpiItems = [
   { key: 'totalCandidates', label: 'Total Kandidat', icon: Users, color: 'from-blue-500 to-blue-600', bg: 'bg-blue-50', textColor: 'text-blue-600' },
-  { key: 'totalAffiliates', label: 'Total Affiliate', icon: TrendingUp, color: 'from-violet-500 to-violet-600', bg: 'bg-violet-50', textColor: 'text-violet-600' },
+  { key: 'totalAffiliates', label: 'Total Affiliate', icon: TrendingUp, color: 'from-[#009ce1] to-[#007bc4]', bg: 'bg-[#009ce1]/10', textColor: 'text-[#009ce1]' },
   { key: 'totalRevenue', label: 'Total Pendapatan', icon: DollarSign, color: 'from-emerald-500 to-emerald-600', bg: 'bg-emerald-50', textColor: 'text-emerald-600', isCurrency: true },
   { key: 'pendingPayments', label: 'Menunggu Verif', icon: Clock, color: 'from-amber-500 to-amber-600', bg: 'bg-amber-50', textColor: 'text-amber-600' },
   { key: 'totalPrograms', label: 'Program Aktif', icon: BookOpen, color: 'from-sky-500 to-sky-600', bg: 'bg-sky-50', textColor: 'text-sky-600' },
@@ -75,6 +76,7 @@ export default function AdminDashboard() {
   const [period, setPeriod] = useState('month')
   const [customStart, setCustomStart] = useState('')
   const [customEnd, setCustomEnd] = useState('')
+  const [reportOpen, setReportOpen] = useState(false)
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-dashboard', period, customStart, customEnd],
@@ -87,17 +89,27 @@ export default function AdminDashboard() {
     },
   })
 
+  const { data: formsData } = useQuery({
+    queryKey: ['form-settings'],
+    queryFn: async () => {
+      const { data } = await api.get('/checkout')
+      return data.data || []
+    },
+  })
+  const registerForm = formsData?.find((f: any) => f.formType === 'REGISTER' && f.isActive)
+  const affiliateForm = formsData?.find((f: any) => f.formType === 'AFFILIATE' && f.isActive)
+
   if (isLoading) return (
     <div className="space-y-6 pb-8 animate-pulse">
-      <div className="h-8 w-48 bg-fb-gray-light rounded-lg" />
+      <div className="h-8 w-48 bg-fb-gray-light rounded-sm" />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[...Array(8)].map((_, i) => (
-          <div key={i} className="h-24 bg-fb-gray-light rounded-xl" />
+          <div key={i} className="h-24 bg-fb-gray-light rounded-sm" />
         ))}
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 h-72 bg-fb-gray-light rounded-xl" />
-        <div className="h-72 bg-fb-gray-light rounded-xl" />
+        <div className="lg:col-span-2 h-72 bg-fb-gray-light rounded-sm" />
+        <div className="h-72 bg-fb-gray-light rounded-sm" />
       </div>
     </div>
   )
@@ -107,9 +119,9 @@ export default function AdminDashboard() {
   const KpiCard = ({ item, value, delay }: { item: typeof kpiItems[0], value: any, delay: number }) => {
     const displayValue = item.isCurrency ? formatCurrency(value || 0) : value?.toLocaleString() || '0'
     return (
-      <div className="bg-white rounded-xl border border-fb-gray-light/60 p-5 hover:shadow-sm transition-all duration-300 animate-in fade-in slide-in-from-bottom-4 fill-mode-both" style={{ animationDelay: `${delay}ms` }}>
+      <div className="bg-white border border-[#009ce1]/20 rounded-sm p-5 hover:shadow-md hover:border-[#009ce1]/30 transition-all duration-300 animate-in fade-in slide-in-from-bottom-4 fill-mode-both" style={{ animationDelay: `${delay}ms` }}>
         <div className="flex items-center justify-between mb-3">
-          <div className={`h-10 w-10 rounded-lg ${item.bg} flex items-center justify-center`}>
+          <div className={`h-10 w-10 rounded-sm ${item.bg} flex items-center justify-center`}>
             <item.icon className={`h-5 w-5 ${item.textColor}`} />
           </div>
           <span className="flex items-center text-[10px] font-medium text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full">
@@ -132,7 +144,7 @@ export default function AdminDashboard() {
           <p className="text-sm text-fb-gray-dark mt-0.5">Overview sistem pendaftaran Mendunia.ID</p>
         </div>
         {data?.isDemo && (
-          <span className="px-3 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg text-xs font-medium">
+          <span className="px-3 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-sm text-xs font-medium">
             Mode Simulasi
           </span>
         )}
@@ -167,6 +179,17 @@ export default function AdminDashboard() {
             Kustom
           </Button>
         </div>
+        <div className="flex items-center gap-2 ml-auto">
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-9 text-xs gap-1.5 rounded-sm border-[#009ce1]/30 text-[#009ce1] hover:bg-[#009ce1]/5"
+            onClick={() => setReportOpen(true)}
+          >
+            <FileText className="h-3.5 w-3.5" />
+            Laporan
+          </Button>
+        </div>
         {period === 'custom' && (
           <div className="flex items-center gap-2 animate-in fade-in slide-in-from-left-4 duration-300">
             <Input type="date" value={customStart} onChange={e => setCustomStart(e.target.value)} className="h-9 w-40 text-xs" />
@@ -178,25 +201,35 @@ export default function AdminDashboard() {
 
       {/* Quick Links */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" style={{ animationDelay: '160ms' }}>
-        <div className="flex items-center justify-between px-4 py-3 bg-white rounded-xl border border-fb-gray-light/60 hover:shadow-sm transition-shadow">
+        <div className="flex items-center justify-between px-4 py-3 bg-white border border-[#009ce1]/20 rounded-sm hover:shadow-md hover:border-[#009ce1]/30 transition-all">
           <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-lg bg-fb-blue-light flex items-center justify-center">
+            <div className="h-8 w-8 rounded-sm bg-fb-blue-light flex items-center justify-center">
               <UserPlus className="h-4 w-4 text-fb-blue" />
             </div>
-            <span className="text-xs text-fb-gray-dark truncate max-w-[200px]">{window.location.origin}/register</span>
+            <span className="text-xs text-fb-gray-dark truncate max-w-[200px]">
+              {registerForm ? `${window.location.origin}/checkout/${registerForm.slug}` : '/register'}
+            </span>
           </div>
-          <Button size="sm" variant="ghost" className="h-7 text-xs text-fb-blue font-medium" onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/register`); toast({ title: 'Link disalin!' })}}>
+          <Button size="sm" variant="ghost" className="h-7 text-xs text-fb-blue font-medium" onClick={() => {
+            const url = registerForm ? `${window.location.origin}/checkout/${registerForm.slug}` : `${window.location.origin}/register`
+            navigator.clipboard.writeText(url); toast({ title: 'Link disalin!' })
+          }}>
             <Copy className="h-3 w-3 mr-1" /> Salin
           </Button>
         </div>
-        <div className="flex items-center justify-between px-4 py-3 bg-white rounded-xl border border-fb-gray-light/60 hover:shadow-sm transition-shadow">
+        <div className="flex items-center justify-between px-4 py-3 bg-white border border-[#009ce1]/20 rounded-sm hover:shadow-md hover:border-[#009ce1]/30 transition-all">
           <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-lg bg-fb-blue-light flex items-center justify-center">
+            <div className="h-8 w-8 rounded-sm bg-fb-blue-light flex items-center justify-center">
               <ExternalLink className="h-4 w-4 text-fb-blue" />
             </div>
-            <span className="text-xs text-fb-gray-dark truncate max-w-[200px]">{window.location.origin}/register/affiliate</span>
+            <span className="text-xs text-fb-gray-dark truncate max-w-[200px]">
+              {affiliateForm ? `${window.location.origin}/checkout/${affiliateForm.slug}` : '/register/affiliate'}
+            </span>
           </div>
-          <Button size="sm" variant="ghost" className="h-7 text-xs text-fb-blue font-medium" onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/register/affiliate`); toast({ title: 'Link affiliate disalin!' })}}>
+          <Button size="sm" variant="ghost" className="h-7 text-xs text-fb-blue font-medium" onClick={() => {
+            const url = affiliateForm ? `${window.location.origin}/checkout/${affiliateForm.slug}` : `${window.location.origin}/register/affiliate`
+            navigator.clipboard.writeText(url); toast({ title: 'Link affiliate disalin!' })
+          }}>
             <Copy className="h-3 w-3 mr-1" /> Salin
           </Button>
         </div>
@@ -217,8 +250,8 @@ export default function AdminDashboard() {
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Growth Chart */}
-        <div className="lg:col-span-2 bg-white rounded-xl border border-fb-gray-light/60 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" style={{ animationDelay: '500ms' }}>
-          <div className="px-5 py-4 border-b border-fb-gray-light/60 flex items-center justify-between">
+        <div className="lg:col-span-2 bg-white border border-[#009ce1]/20 rounded-sm overflow-hidden hover:shadow-md hover:border-[#009ce1]/30 transition-all animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" style={{ animationDelay: '500ms' }}>
+          <div className="px-5 py-4 border-b border-[#009ce1]/10 flex items-center justify-between">
             <h3 className="text-sm font-semibold text-fb-blue">Tren Pendaftaran</h3>
             <div className="flex items-center gap-3 text-xs text-fb-gray-dark">
               <span className="flex items-center gap-1.5">
@@ -226,7 +259,7 @@ export default function AdminDashboard() {
                 Kandidat
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-violet-500" />
+                <span className="w-2.5 h-2.5 rounded-full bg-[#009ce1]" />
                 Affiliate
               </span>
             </div>
@@ -256,8 +289,8 @@ export default function AdminDashboard() {
         </div>
 
         {/* Status Distribution */}
-        <div className="bg-white rounded-xl border border-fb-gray-light/60 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" style={{ animationDelay: '600ms' }}>
-          <div className="px-5 py-4 border-b border-fb-gray-light/60">
+        <div className="bg-white border border-[#009ce1]/20 rounded-sm overflow-hidden hover:shadow-md hover:border-[#009ce1]/30 transition-all animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" style={{ animationDelay: '600ms' }}>
+          <div className="px-5 py-4 border-b border-[#009ce1]/10">
             <h3 className="text-sm font-semibold text-fb-blue">Distribusi Status</h3>
           </div>
           <div className="p-5">
@@ -309,8 +342,8 @@ export default function AdminDashboard() {
       {/* Revenue vs Commission + Payment Status */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Revenue vs Commission Chart */}
-        <div className="lg:col-span-2 bg-white rounded-xl border border-fb-gray-light/60 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" style={{ animationDelay: '650ms' }}>
-          <div className="px-5 py-4 border-b border-fb-gray-light/60 flex items-center justify-between">
+        <div className="lg:col-span-2 bg-white border border-[#009ce1]/20 rounded-sm overflow-hidden hover:shadow-md hover:border-[#009ce1]/30 transition-all animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" style={{ animationDelay: '650ms' }}>
+          <div className="px-5 py-4 border-b border-[#009ce1]/10 flex items-center justify-between">
             <h3 className="text-sm font-semibold text-fb-blue">Pendapatan vs Komisi</h3>
             <div className="flex items-center gap-3 text-xs text-fb-gray-dark">
               <span className="flex items-center gap-1.5">
@@ -338,8 +371,8 @@ export default function AdminDashboard() {
         </div>
 
         {/* Payment Status Distribution */}
-        <div className="bg-white rounded-xl border border-fb-gray-light/60 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" style={{ animationDelay: '700ms' }}>
-          <div className="px-5 py-4 border-b border-fb-gray-light/60">
+        <div className="bg-white border border-[#009ce1]/20 rounded-sm overflow-hidden hover:shadow-md hover:border-[#009ce1]/30 transition-all animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" style={{ animationDelay: '700ms' }}>
+          <div className="px-5 py-4 border-b border-[#009ce1]/10">
             <h3 className="text-sm font-semibold text-fb-blue">Status Pembayaran</h3>
           </div>
           <div className="p-5">
@@ -385,8 +418,8 @@ export default function AdminDashboard() {
       {/* Demographics + Document Status + Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Gender Distribution */}
-        <div className="bg-white rounded-xl border border-fb-gray-light/60 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" style={{ animationDelay: '750ms' }}>
-          <div className="px-5 py-4 border-b border-fb-gray-light/60">
+        <div className="bg-white border border-[#009ce1]/20 rounded-sm overflow-hidden hover:shadow-md hover:border-[#009ce1]/30 transition-all animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" style={{ animationDelay: '750ms' }}>
+          <div className="px-5 py-4 border-b border-[#009ce1]/10">
             <h3 className="text-sm font-semibold text-fb-blue flex items-center gap-2">
               <Users className="h-3.5 w-3.5 text-fb-gray-dark" />
               Jenis Kelamin
@@ -428,8 +461,8 @@ export default function AdminDashboard() {
         </div>
 
         {/* Education Distribution */}
-        <div className="bg-white rounded-xl border border-fb-gray-light/60 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" style={{ animationDelay: '800ms' }}>
-          <div className="px-5 py-4 border-b border-fb-gray-light/60">
+        <div className="bg-white border border-[#009ce1]/20 rounded-sm overflow-hidden hover:shadow-md hover:border-[#009ce1]/30 transition-all animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" style={{ animationDelay: '800ms' }}>
+          <div className="px-5 py-4 border-b border-[#009ce1]/10">
             <h3 className="text-sm font-semibold text-fb-blue flex items-center gap-2">
               <GraduationCap className="h-3.5 w-3.5 text-fb-gray-dark" />
               Pendidikan Terakhir
@@ -469,8 +502,8 @@ export default function AdminDashboard() {
         {/* Document Status + Recent Activity */}
         <div className="space-y-6">
           {/* Document Verification */}
-          <div className="bg-white rounded-xl border border-fb-gray-light/60 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" style={{ animationDelay: '850ms' }}>
-            <div className="px-5 py-4 border-b border-fb-gray-light/60">
+          <div className="bg-white border border-[#009ce1]/20 rounded-sm overflow-hidden hover:shadow-md hover:border-[#009ce1]/30 transition-all animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" style={{ animationDelay: '850ms' }}>
+            <div className="px-5 py-4 border-b border-[#009ce1]/10">
               <h3 className="text-sm font-semibold text-fb-blue flex items-center gap-2">
                 <ShieldCheck className="h-3.5 w-3.5 text-fb-gray-dark" />
                 Verifikasi Dokumen
@@ -505,8 +538,8 @@ export default function AdminDashboard() {
           </div>
 
           {/* Recent Activity */}
-          <div className="bg-white rounded-xl border border-fb-gray-light/60 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" style={{ animationDelay: '900ms' }}>
-            <div className="px-5 py-4 border-b border-fb-gray-light/60 flex items-center justify-between">
+          <div className="bg-white border border-[#009ce1]/20 rounded-sm overflow-hidden hover:shadow-md hover:border-[#009ce1]/30 transition-all animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" style={{ animationDelay: '900ms' }}>
+            <div className="px-5 py-4 border-b border-[#009ce1]/10 flex items-center justify-between">
               <h3 className="text-sm font-semibold text-fb-blue flex items-center gap-2">
                 <Activity className="h-3.5 w-3.5 text-fb-gray-dark" />
                 Aktivitas Terbaru
@@ -520,7 +553,7 @@ export default function AdminDashboard() {
                       log.action === 'CREATE' ? 'bg-emerald-50 text-emerald-600' :
                       log.action === 'UPDATE' ? 'bg-blue-50 text-blue-600' :
                       log.action === 'DELETE' ? 'bg-red-50 text-red-600' :
-                      log.action === 'LOGIN' ? 'bg-violet-50 text-violet-600' :
+                      log.action === 'LOGIN' ? 'bg-[#009ce1]/10 text-[#009ce1]' :
                       'bg-gray-50 text-gray-600'
                     }`}>
                       {log.action === 'LOGIN' ? <LogIn className="h-3.5 w-3.5" /> :
@@ -549,8 +582,8 @@ export default function AdminDashboard() {
       {/* Top Programs & Top Affiliates */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top Programs */}
-        <div className="bg-white rounded-xl border border-fb-gray-light/60 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" style={{ animationDelay: '950ms' }}>
-          <div className="px-5 py-4 border-b border-fb-gray-light/60 flex items-center justify-between">
+        <div className="bg-white border border-[#009ce1]/20 rounded-sm overflow-hidden hover:shadow-md hover:border-[#009ce1]/30 transition-all animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" style={{ animationDelay: '950ms' }}>
+          <div className="px-5 py-4 border-b border-[#009ce1]/10 flex items-center justify-between">
             <h3 className="text-sm font-semibold text-fb-blue">Program Terlaris</h3>
             <span className="text-[10px] text-fb-gray-dark font-medium">Top 10</span>
           </div>
@@ -558,11 +591,11 @@ export default function AdminDashboard() {
             <div className="divide-y divide-fb-gray-light/40">
               {data.topPrograms.map((p: any, i: number) => (
                 <div key={p.id} className="flex items-center gap-3 px-5 py-3 hover:bg-fb-gray/30 transition-all duration-200 animate-in fade-in slide-in-from-left-2 fill-mode-both" style={{ animationDelay: `${700 + (i + 1) * 60}ms` }}>
-                  <span className={`w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-bold flex-shrink-0 ${
-                    i === 0 ? 'bg-amber-50 text-amber-700' :
-                    i === 1 ? 'bg-slate-50 text-slate-600' :
-                    i === 2 ? 'bg-orange-50 text-orange-700' :
-                    'bg-fb-gray text-fb-gray-dark'
+                  <span className={`w-7 h-7 rounded-sm flex items-center justify-center text-[10px] font-bold flex-shrink-0 ${
+                    i === 0 ? 'bg-amber-50 text-amber-700 border border-amber-200/50' :
+                    i === 1 ? 'bg-slate-50 text-slate-600 border border-slate-200/50' :
+                    i === 2 ? 'bg-orange-50 text-orange-700 border border-orange-200/50' :
+                    'bg-fb-gray text-fb-gray-dark border border-fb-gray-light/50'
                   }`}>
                     {i + 1}
                   </span>
@@ -580,8 +613,8 @@ export default function AdminDashboard() {
         </div>
 
         {/* Top Affiliates */}
-        <div className="bg-white rounded-xl border border-fb-gray-light/60 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" style={{ animationDelay: '800ms' }}>
-          <div className="px-5 py-4 border-b border-fb-gray-light/60 flex items-center justify-between">
+        <div className="bg-white border border-[#009ce1]/20 rounded-sm overflow-hidden hover:shadow-md hover:border-[#009ce1]/30 transition-all animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" style={{ animationDelay: '800ms' }}>
+          <div className="px-5 py-4 border-b border-[#009ce1]/10 flex items-center justify-between">
             <h3 className="text-sm font-semibold text-fb-blue">Top Affiliate</h3>
             <span className="text-[10px] text-fb-gray-dark font-medium">Terbaik</span>
           </div>
@@ -589,11 +622,11 @@ export default function AdminDashboard() {
             <div className="divide-y divide-fb-gray-light/40">
               {data.topAffiliates.map((a: any, i: number) => (
                 <div key={a.id} className="flex items-center gap-3 px-5 py-3 hover:bg-fb-gray/30 transition-all duration-200 animate-in fade-in slide-in-from-left-2 fill-mode-both" style={{ animationDelay: `${800 + (i + 1) * 60}ms` }}>
-                  <span className={`w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-bold flex-shrink-0 ${
-                    i === 0 ? 'bg-amber-50 text-amber-700' :
-                    i === 1 ? 'bg-slate-50 text-slate-600' :
-                    i === 2 ? 'bg-orange-50 text-orange-700' :
-                    'bg-fb-gray text-fb-gray-dark'
+                  <span className={`w-7 h-7 rounded-sm flex items-center justify-center text-[10px] font-bold flex-shrink-0 ${
+                    i === 0 ? 'bg-amber-50 text-amber-700 border border-amber-200/50' :
+                    i === 1 ? 'bg-slate-50 text-slate-600 border border-slate-200/50' :
+                    i === 2 ? 'bg-orange-50 text-orange-700 border border-orange-200/50' :
+                    'bg-fb-gray text-fb-gray-dark border border-fb-gray-light/50'
                   }`}>
                     {i + 1}
                   </span>
@@ -601,7 +634,7 @@ export default function AdminDashboard() {
                     <p className="text-xs font-medium text-fb-blue truncate">{a.name}</p>
                     <p className="text-[10px] text-fb-gray-dark">{a.code} · {a.totalCommissions} komisi</p>
                   </div>
-                  <span className="text-xs font-bold text-indigo-600 flex-shrink-0">{formatCurrency(a.totalCommission)}</span>
+                  <span className="text-xs font-bold text-[#009ce1] flex-shrink-0">{formatCurrency(a.totalCommission)}</span>
                 </div>
               ))}
             </div>
@@ -612,20 +645,20 @@ export default function AdminDashboard() {
       </div>
 
       {/* Recent Applications Table */}
-      <div className="bg-white rounded-xl border border-fb-gray-light/60 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" style={{ animationDelay: '900ms' }}>
-        <div className="px-5 py-4 border-b border-fb-gray-light/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-white border border-[#009ce1]/20 rounded-sm overflow-hidden hover:shadow-md hover:border-[#009ce1]/30 transition-all animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" style={{ animationDelay: '900ms' }}>
+        <div className="px-5 py-4 border-b border-[#009ce1]/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <h3 className="text-sm font-semibold text-fb-blue">Pendaftaran Terbaru</h3>
           <div className="flex items-center gap-2">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-fb-gray-dark" />
-              <Input placeholder="Cari..." className="pl-9 h-9 w-48 text-xs rounded-lg" />
+              <Input placeholder="Cari..." className="pl-9 h-9 w-48 text-xs rounded-sm" />
             </div>
           </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
             <thead>
-              <tr className="border-b border-fb-gray-light/60 text-fb-gray-dark text-xs bg-fb-gray/30">
+              <tr className="border-b border-[#009ce1]/10 text-fb-gray-dark text-xs bg-fb-gray/30">
                 <th className="px-5 py-3 font-semibold">Kandidat</th>
                 <th className="px-5 py-3 font-semibold">Program</th>
                 <th className="px-5 py-3 font-semibold">Status</th>
@@ -637,7 +670,7 @@ export default function AdminDashboard() {
                 <tr key={app.id} className="hover:bg-fb-gray/30 transition-colors animate-in fade-in fill-mode-both" style={{ animationDelay: `${900 + (i + 1) * 50}ms` }}>
                   <td className="px-5 py-3.5 whitespace-nowrap">
                     <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-fb-blue to-fb-blue-dark text-white flex items-center justify-center text-xs font-bold">
+                      <div className="h-8 w-8 rounded-sm bg-gradient-to-br from-fb-blue to-fb-blue-dark text-white flex items-center justify-center text-xs font-bold">
                         {(app.candidate?.fullName || 'A').charAt(0).toUpperCase()}
                       </div>
                       <span className="font-medium text-fb-blue text-xs">{app.candidate?.fullName || 'Anonim'}</span>
@@ -648,7 +681,7 @@ export default function AdminDashboard() {
                   </td>
                   <td className="px-5 py-3.5 whitespace-nowrap">
                     <span
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border"
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-xs font-medium border"
                       style={{
                         backgroundColor: `${STATUS_COLORS[app.status]}0A`,
                         color: STATUS_COLORS[app.status],
@@ -675,6 +708,9 @@ export default function AdminDashboard() {
           </table>
         </div>
       </div>
+
+      {/* Financial Report Modal */}
+      <FinancialReportModal open={reportOpen} onClose={() => setReportOpen(false)} />
     </div>
   )
 }

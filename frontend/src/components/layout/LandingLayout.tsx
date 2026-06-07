@@ -11,7 +11,7 @@ export default function LandingLayout() {
 
   const dashboardPath = user ? {
     SUPER_ADMIN: '/admin', ADMIN: '/admin', FINANCE: '/finance',
-    AFFILIATE: '/affiliate', KANDIDAT: '/candidate',
+    AFFILIATE: '/affiliate', KANDIDAT: '/candidate', GURU: '/guru',
   }[user.role] : '/login'
 
   return (

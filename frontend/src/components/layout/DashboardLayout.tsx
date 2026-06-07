@@ -6,7 +6,7 @@ import {
   Settings, Menu, X, LogOut, Bell, ChevronDown,
   TrendingUp, FileText, Award, ShieldCheck, ClipboardList,
   Search, Home, ChevronLeft, ChevronRight, BarChart3,
-  CheckCheck, Gift,
+  CheckCheck, Gift, UserPlus, GraduationCap,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuthStore } from '@/stores/authStore'
@@ -28,6 +28,9 @@ const navConfig: Record<string, NavItem[]> = {
     { label: 'Pembayaran', path: '/admin/payments', icon: CreditCard },
     { label: 'Affiliate', path: '/admin/affiliates', icon: TrendingUp },
     { label: 'Leaderboard', path: '/admin/leaderboard', icon: Award },
+    { label: 'Member Area', path: '/admin/member-areas', icon: UserPlus },
+    { label: 'LMS', path: '/admin/lms', icon: GraduationCap },
+    { label: 'Enrollment', path: '/admin/lms-enrollments', icon: Users },
     { label: 'Laporan', path: '/admin/reports', icon: BarChart3 },
     { label: 'Pengaturan', path: '/admin/settings', icon: Settings },
     { label: 'Audit Log', path: '/admin/audit-logs', icon: ShieldCheck },
@@ -43,16 +46,23 @@ const navConfig: Record<string, NavItem[]> = {
     { label: 'Dokumen', path: '/candidate/documents', icon: FileText },
     { label: 'Pendaftaran', path: '/candidate/applications', icon: ClipboardList },
     { label: 'Pembayaran', path: '/candidate/payments', icon: CreditCard },
+    { label: 'Member Area', path: '/candidate/member-areas', icon: UserPlus },
+    { label: 'LMS', path: '/candidate/lms', icon: GraduationCap },
+  ],
+  guru: [
+    { label: 'Dashboard', path: '/guru', icon: LayoutDashboard },
+    { label: 'Courses', path: '/guru/courses', icon: GraduationCap },
   ],
   affiliate: [
     { label: 'Dashboard', path: '/affiliate', icon: LayoutDashboard },
     { label: 'Leaderboard', path: '/affiliate/leaderboard', icon: TrendingUp },
     { label: 'Reward', path: '/affiliate/rewards', icon: Gift },
+    { label: 'Member Area', path: '/affiliate/member-areas', icon: UserPlus },
   ],
 }
 
 const roleLabel: Record<string, string> = {
-  admin: 'Administrator', finance: 'Finance', candidate: 'Kandidat', affiliate: 'Affiliate',
+  admin: 'Administrator', finance: 'Finance', candidate: 'Kandidat', affiliate: 'Affiliate', guru: 'Guru',
 }
 
 export default function DashboardLayout({ role }: { role: string }) {
@@ -122,6 +132,24 @@ export default function DashboardLayout({ role }: { role: string }) {
     PAYMENT_REJECTED: '❌',
   }
 
+  const getNotifRoute = (n: any): string => {
+    const base = role === 'admin' ? '/admin' : role === 'finance' ? '/finance' : role === 'candidate' ? '/candidate' : '/affiliate'
+    switch (n.type) {
+      case 'PAYMENT_UPLOADED':
+        return n.data?.paymentId ? `${base}/payments/${n.data.paymentId}/invoice` : `${base}/payments`
+      case 'PAYMENT_VERIFIED':
+      case 'PAYMENT_REJECTED':
+        return n.data?.paymentId ? `${base}/payments/${n.data.paymentId}/invoice` : `${base}/payments`
+      default:
+        return base
+    }
+  }
+
+  const handleNotifClick = (n: any) => {
+    setNotifOpen(false)
+    navigate(getNotifRoute(n))
+  }
+
   const handleLogout = () => {
     logout()
     navigate('/login')
@@ -152,7 +180,7 @@ export default function DashboardLayout({ role }: { role: string }) {
             'flex items-center h-14 border-b border-white/10 flex-shrink-0',
             isCollapsed ? 'justify-center px-0' : 'px-4 gap-2.5'
           )}>
-            <div className="h-8 w-8 bg-white rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
+            <div className="h-9 w-9 bg-white rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
               <img src="/logo3.png" alt="mendunia.id" className="h-4 w-auto" />
             </div>
             {!isCollapsed && (
@@ -177,10 +205,10 @@ export default function DashboardLayout({ role }: { role: string }) {
                   key={item.path}
                   to={item.path}
                   className={cn(
-                    'flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-all relative group',
+                    'flex items-center gap-3 px-3 py-2.5 rounded-sm text-xs font-medium transition-all relative group',
                     isActive
-                      ? 'bg-white/15 text-white shadow-sm'
-                      : 'text-blue-200/70 hover:bg-white/5 hover:text-white',
+                      ? 'bg-white/20 text-white shadow-sm ring-1 ring-white/20'
+                      : 'text-blue-200/70 hover:bg-white/10 hover:text-white',
                     isCollapsed ? 'justify-center px-0 py-2.5' : ''
                   )}
                 >
@@ -254,7 +282,7 @@ export default function DashboardLayout({ role }: { role: string }) {
               'flex items-center relative group',
               isCollapsed ? 'justify-center' : 'gap-2.5'
             )}>
-              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-sm ring-2 ring-white/10">
+              <div className="h-9 w-9 rounded-sm bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-sm ring-2 ring-white/20">
                 {user?.email?.[0].toUpperCase()}
               </div>
               {!isCollapsed && (
@@ -285,12 +313,12 @@ export default function DashboardLayout({ role }: { role: string }) {
             <div className="flex flex-col h-full">
               <div className="flex items-center justify-between px-4 h-14 border-b border-white/10">
                 <div className="flex items-center gap-2.5">
-                  <div className="h-8 w-8 bg-white rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
+                  <div className="h-9 w-9 bg-white rounded-sm flex items-center justify-center flex-shrink-0 shadow-sm">
                     <img src="/logo3.png" alt="mendunia.id" className="h-4 w-auto" />
                   </div>
                   <span className="font-bold text-sm text-white">mendunia.id</span>
                 </div>
-                <button onClick={() => setSidebarOpen(false)} className="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors">
+                <button onClick={() => setSidebarOpen(false)} className="h-8 w-8 flex items-center justify-center rounded-sm hover:bg-white/10 transition-colors">
                   <X className="h-4 w-4 text-white/70" />
                 </button>
               </div>
@@ -306,10 +334,10 @@ export default function DashboardLayout({ role }: { role: string }) {
                       to={item.path}
                       onClick={() => setSidebarOpen(false)}
                       className={cn(
-                        'flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium transition-all relative',
+                        'flex items-center gap-3 px-3 py-2.5 rounded-sm text-xs font-medium transition-all relative',
                         isActive
-                          ? 'bg-white/15 text-white shadow-sm'
-                          : 'text-blue-200/70 hover:bg-white/5 hover:text-white'
+                          ? 'bg-white/20 text-white shadow-sm ring-1 ring-white/20'
+                          : 'text-blue-200/70 hover:bg-white/10 hover:text-white'
                       )}
                     >
                       {isActive && (
@@ -350,7 +378,7 @@ export default function DashboardLayout({ role }: { role: string }) {
       <div className="flex-1 flex flex-col overflow-hidden">
 
         {/* Top bar — Meta-style minimal header */}
-        <header className="flex items-center gap-3 h-14 bg-white border-b border-fb-gray-light/60  px-4 lg:px-6 flex-shrink-0">
+        <header className="flex items-center gap-3 h-14 bg-white border-b border-[#009ce1]/10 px-4 lg:px-6 flex-shrink-0">
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <Button
               variant="ghost"
@@ -363,7 +391,7 @@ export default function DashboardLayout({ role }: { role: string }) {
           </div>
 
           {/* Search — Meta-style */}
-          <div className="hidden md:flex items-center gap-2 bg-fb-gray border-0 rounded-lg px-3.5 py-1.5 cursor-text w-56 group/search">
+          <div className="hidden md:flex items-center gap-2 bg-fb-gray border border-[#009ce1]/10 rounded-sm px-3.5 py-1.5 cursor-text w-56 group/search">
             <Search className="h-3.5 w-3.5 text-fb-gray-dark" />
             <span className="text-xs text-fb-gray-dark">Search...</span>
             <div className="ml-auto hidden lg:flex items-center gap-0.5">
@@ -377,7 +405,7 @@ export default function DashboardLayout({ role }: { role: string }) {
             <Button
               variant="ghost"
               size="icon"
-              className="relative h-8 w-8 text-fb-gray-dark hover:bg-fb-gray rounded-lg transition-all"
+              className="relative h-8 w-8 text-fb-gray-dark hover:bg-fb-gray rounded-sm transition-all"
               onClick={() => setNotifOpen(!notifOpen)}
             >
               <Bell className="h-4 w-4" />
@@ -389,8 +417,8 @@ export default function DashboardLayout({ role }: { role: string }) {
             </Button>
 
             {notifOpen && (
-              <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-lg border border-fb-gray-light  z-50 overflow-hidden animate-in slide-in-from-top-2 fade-in duration-150">
-                <div className="flex items-center justify-between px-4 py-3 border-b border-fb-gray-light/60 ">
+              <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-sm shadow-lg border border-[#009ce1]/20 z-50 overflow-hidden animate-in slide-in-from-top-2 fade-in duration-150">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-[#009ce1]/10">
                   <h3 className="text-sm font-semibold text-fb-blue">Notifikasi</h3>
                   {unreadCount > 0 && (
                     <button
@@ -409,10 +437,11 @@ export default function DashboardLayout({ role }: { role: string }) {
                     notifications.map((n: any) => (
                       <div
                         key={n.id}
-                        className={`px-4 py-3 border-b border-fb-gray-light/40  last:border-0 hover:bg-fb-gray/50/50 transition-colors ${!n.isRead ? 'bg-fb-blue/5' : ''}`}
+                        onClick={() => handleNotifClick(n)}
+                        className={`px-4 py-3 border-b border-[#009ce1]/10 last:border-0 hover:bg-fb-blue/10 transition-colors cursor-pointer ${!n.isRead ? 'bg-fb-blue/5' : ''}`}
                       >
                         <div className="flex items-start gap-2.5">
-                          <div className="h-7 w-7 rounded-lg bg-fb-blue-light flex items-center justify-center text-sm flex-shrink-0">
+                          <div className="h-8 w-8 rounded-sm bg-fb-blue-light flex items-center justify-center text-sm flex-shrink-0">
                             {notifIcons[n.type] || '🔔'}
                           </div>
                           <div className="min-w-0 flex-1">
@@ -425,7 +454,18 @@ export default function DashboardLayout({ role }: { role: string }) {
                           )}
                         </div>
                       </div>
-                    ))
+                    )))}
+                  {notifications.length > 0 && (
+                    <div
+                      onClick={() => {
+                        setNotifOpen(false)
+                        const base = role === 'admin' ? '/admin' : role === 'finance' ? '/finance' : role === 'candidate' ? '/candidate' : '/affiliate'
+                        navigate(base + '/notifications')
+                      }}
+                      className="px-4 py-2.5 text-center text-xs font-semibold text-fb-blue hover:bg-fb-blue/10 transition-colors cursor-pointer border-t border-[#009ce1]/10"
+                    >
+                      Lihat Semua
+                    </div>
                   )}
                 </div>
               </div>
@@ -434,7 +474,7 @@ export default function DashboardLayout({ role }: { role: string }) {
 
           {/* User avatar — Meta-style */}
           <div className="flex items-center gap-2 cursor-pointer group pl-1">
-            <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-fb-blue to-fb-blue-dark flex items-center justify-center text-white text-[10px] font-bold shadow-sm ring-1 ring-white/50">
+            <div className="h-8 w-8 rounded-sm bg-gradient-to-br from-fb-blue to-fb-blue-dark flex items-center justify-center text-white text-[10px] font-bold shadow-sm ring-1 ring-white/50">
               {user?.email?.[0].toUpperCase()}
             </div>
             <div className="hidden sm:block">

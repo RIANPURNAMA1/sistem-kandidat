@@ -2,10 +2,12 @@ import React, { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/index'
-import { formatCurrency, cn } from '@/lib/utils'
+import { formatCurrency } from '@/lib/utils'
 import { toast } from '@/components/ui/toaster'
 import { Plus, X, Copy, ChevronDown, ChevronUp, Search, Grid, Download, RefreshCw, SlidersHorizontal, ChevronLeft, ChevronRight } from 'lucide-react'
 import api from '@/services/api'
+
+const BASE_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || window.location.origin
 
 export default function AdminAffiliatesPage() {
   const queryClient = useQueryClient()
@@ -34,12 +36,21 @@ export default function AdminAffiliatesPage() {
   const { data: affiliatePrograms } = useQuery({
     queryKey: ['admin-affiliate-programs', expanded],
     queryFn: async () => {
-      if (!expanded) return []
+      if (!expanded) return {}
       const { data } = await api.get(`/affiliates/${expanded}/programs`)
-      return data.data
+      return { affiliateId: expanded, programs: data.data || [] }
     },
     enabled: !!expanded,
   })
+
+  const { data: formsData } = useQuery({
+    queryKey: ['form-settings'],
+    queryFn: async () => {
+      const { data } = await api.get('/checkout')
+      return data.data || []
+    },
+  })
+  const registerForm = formsData?.find((f: any) => f.formType === 'REGISTER' && f.isActive)
 
   const addMutation = useMutation({
     mutationFn: async ({ affiliateId, programId }: { affiliateId: string; programId: string }) => {
@@ -71,7 +82,7 @@ export default function AdminAffiliatesPage() {
   })
 
   const programsList = allPrograms?.data || []
-  const expandedPrograms = affiliatePrograms || []
+  const expandedPrograms = (affiliatePrograms as any)?.programs || []
   const availableForExpanded = programsList.filter(
     (p: any) => !expandedPrograms.some((ep: any) => ep.id === p.id)
   )
@@ -91,7 +102,7 @@ export default function AdminAffiliatesPage() {
             <span className="text-xs text-slate-400">
               {page} of {data?.pagination?.totalPages || 1}
             </span>
-            <div className="flex border border-slate-200 rounded-lg overflow-hidden bg-slate-50">
+            <div className="flex border border-slate-200 rounded-sm overflow-hidden bg-slate-50">
               <button
                 className="px-2 py-1.5 hover:bg-slate-100 disabled:opacity-40 transition-colors"
                 disabled={page <= 1}
@@ -113,12 +124,12 @@ export default function AdminAffiliatesPage() {
           <div className="flex items-center gap-2">
             <div className="relative">
               <Button variant="outline" size="sm"
-                className="h-9 text-xs font-medium border-slate-200 text-slate-600 rounded-lg"
+                className="h-9 text-xs font-medium border-slate-200 text-slate-600 rounded-sm"
                 onClick={() => setShowManage(!showManage)}>
                 <SlidersHorizontal className="h-3.5 w-3.5 mr-1.5" /> Manage
               </Button>
               {showManage && (
-                <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-slate-200 rounded-lg shadow-lg z-20 py-1">
+                <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-slate-200 rounded-sm shadow-lg z-20 py-1">
                   <button className="w-full px-4 py-2 text-xs text-left text-slate-700 hover:bg-slate-50 flex items-center gap-2"
                     onClick={async () => {
                       setShowManage(false)
@@ -157,7 +168,7 @@ export default function AdminAffiliatesPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
             <Input
               placeholder="Cari affiliate..."
-              className="pl-9 h-9 w-52 rounded-lg text-xs border-slate-200 bg-slate-50 shadow-none focus-visible:ring-1 focus-visible:ring-indigo-100 focus-visible:border-indigo-300"
+              className="pl-9 h-9 w-52 rounded-sm text-xs border-slate-200 bg-slate-50 shadow-none focus-visible:ring-1 focus-visible:ring-[#009ce1]/20 focus-visible:border-[#009ce1]"
               value={search}
               onChange={e => { setSearch(e.target.value); setPage(1) }}
             />
@@ -210,7 +221,7 @@ export default function AdminAffiliatesPage() {
                         : <ChevronDown className="h-4 w-4 inline text-slate-400" />
                       }
                     </td>
-                    <td className="px-4 py-[13px] font-mono font-semibold text-indigo-600 border border-slate-100">{a.code}</td>
+                    <td className="px-4 py-[13px] font-mono font-semibold text-[#009ce1] border border-slate-100">{a.code}</td>
                     <td className="px-4 py-[13px] text-slate-600 border border-slate-100">{a.user?.email}</td>
                     <td className="px-4 py-[13px] text-slate-600 border border-slate-100">{a.totalClicks?.toLocaleString()}</td>
                     <td className="px-4 py-[13px] text-slate-600 border border-slate-100">{a.totalRegistrations?.toLocaleString()}</td>
@@ -226,41 +237,45 @@ export default function AdminAffiliatesPage() {
                             {expandedPrograms.length === 0 && (
                               <p className="text-xs text-slate-400 italic">Belum ada program yang diaktifkan untuk affiliate ini.</p>
                             )}
-                            {expandedPrograms.map((p: any) => (
-                              <div key={p.id} className="flex items-center justify-between bg-white border border-slate-200 rounded-sm px-4 py-3">
-                                <div>
-                                  <p className="text-xs font-semibold text-slate-800">{p.name}</p>
-                                  {p.fee && <p className="text-xs font-medium text-indigo-600">{formatCurrency(p.fee)}</p>}
-                                </div>
-                                <div className="flex items-center gap-3">
-                                  <div className="flex items-center bg-slate-50 border border-slate-200 rounded px-3 py-1.5 gap-2">
-                                    <span className="text-[10px] text-slate-400 font-mono">Link:</span>
-                                    <input
-                                      readOnly
-                                      value={`/register?ref=${a.code}&programId=${p.id}`}
-                                      className="bg-transparent text-[10px] font-mono text-slate-600 border-0 outline-none w-52"
-                                    />
+                            {expandedPrograms.map((p: any) => {
+                              const formSlug = registerForm?.slug || ''
+                              const formPath = formSlug ? `/checkout/${formSlug}` : '/register'
+                              return (
+                                <div key={p.id} className="flex items-center justify-between bg-white border border-slate-200 rounded-sm px-4 py-3">
+                                  <div>
+                                    <p className="text-xs font-semibold text-slate-800">{p.name}</p>
+                                    {p.fee && <p className="text-xs font-medium text-[#009ce1]">{formatCurrency(p.fee)}</p>}
                                   </div>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    className="h-8 rounded border-slate-200"
-                                    onClick={() => {
-                                      navigator.clipboard.writeText(`/register?ref=${a.code}&programId=${p.id}`)
-                                      toast({ title: 'Link disalin!' })
-                                    }}
-                                  >
-                                    <Copy className="h-3.5 w-3.5" />
-                                  </Button>
-                                  <button
-                                    onClick={() => removeMutation.mutate({ affiliateId: a.id, programId: p.id })}
-                                    className="h-8 w-8 rounded hover:bg-red-50 flex items-center justify-center text-slate-400 hover:text-red-500 transition-colors"
-                                  >
-                                    <X className="h-4 w-4" />
-                                  </button>
+                                  <div className="flex items-center gap-3">
+                                    <div className="flex items-center bg-slate-50 border border-slate-200 rounded px-3 py-1.5 gap-2">
+                                      <span className="text-[10px] text-slate-400 font-mono">Link:</span>
+                                      <input
+                                        readOnly
+                                        value={`${BASE_URL}${formPath}?ref=${a.code}&programId=${p.id}`}
+                                        className="bg-transparent text-[10px] font-mono text-slate-600 border-0 outline-none w-52"
+                                      />
+                                    </div>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="h-8 rounded border-slate-200"
+                                      onClick={() => {
+                                        navigator.clipboard.writeText(`${BASE_URL}${formPath}?ref=${a.code}&programId=${p.id}`)
+                                        toast({ title: 'Link disalin!' })
+                                      }}
+                                    >
+                                      <Copy className="h-3.5 w-3.5" />
+                                    </Button>
+                                    <button
+                                      onClick={() => removeMutation.mutate({ affiliateId: a.id, programId: p.id })}
+                                      className="h-8 w-8 rounded hover:bg-red-50 flex items-center justify-center text-slate-400 hover:text-red-500 transition-colors"
+                                    >
+                                      <X className="h-4 w-4" />
+                                    </button>
+                                  </div>
                                 </div>
-                              </div>
-                            ))}
+                              )
+                            })}
                           </div>
 
                           <div className="pt-2">
@@ -269,7 +284,7 @@ export default function AdminAffiliatesPage() {
                                 <select
                                   value={selectedProgramId}
                                   onChange={(e) => setSelectedProgramId(e.target.value)}
-                                  className="flex-1 h-9 rounded border border-slate-200 px-3 text-xs outline-none focus:border-indigo-400 transition-colors"
+                                  className="flex-1 h-9 rounded border border-slate-200 px-3 text-xs outline-none focus:border-[#009ce1] transition-colors"
                                 >
                                   <option value="">Pilih program untuk ditambahkan...</option>
                                   {availableForExpanded.map((p: any) => (

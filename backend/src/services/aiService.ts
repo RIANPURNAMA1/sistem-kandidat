@@ -1,8 +1,15 @@
 import { GoogleGenAI } from '@google/genai';
+import OpenAI from 'openai';
 import { prisma } from '../config/database';
 import { logger } from '../utils/logger';
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
+const gemini = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
+const groq = new OpenAI({
+  apiKey: process.env.GROQ_API_KEY || '',
+  baseURL: 'https://api.groq.com/openai/v1',
+});
+
+const GROQ_MODEL = 'llama-3.3-70b-versatile';
 
 const SYSTEM_PROMPT = `Anda adalah asisten AI platform "Mendunia.id" — sistem pendaftaran dan penempatan kandidat kerja di Indonesia.
 
@@ -236,6 +243,57 @@ async function getDataContext(): Promise<DataContext> {
   }
 }
 
+function isGeminiQuotaError(error: any): boolean {
+  const msg = error?.message?.toLowerCase() || '';
+  const status = error?.status || error?.response?.status;
+  return msg.includes('quota') || msg.includes('rate limit') || msg.includes('429') || 
+         status === 429 || status === 403 || msg.includes('resource has been exhausted');
+}
+
+async function callGemini(prompt: string): Promise<string> {
+  const response = await gemini.models.generateContent({
+    model: 'gemini-2.5-flash',
+    contents: [
+      { role: 'user', parts: [{ text: prompt }] },
+    ],
+  });
+  return response.text ?? '';
+}
+
+async function callGroq(prompt: string): Promise<string> {
+  const response = await groq.chat.completions.create({
+    model: GROQ_MODEL,
+    messages: [
+      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'user', content: prompt },
+    ],
+    temperature: 0.7,
+    max_tokens: 4096,
+  });
+  return response.choices[0]?.message?.content || '';
+}
+
+async function callWithFallback(primary: () => Promise<string>, fallback: () => Promise<string>, label: string): Promise<string> {
+  try {
+    const result = await primary();
+    return result;
+  } catch (error: any) {
+    logger.warn(`${label} primary failed, attempting fallback: ${error?.message || error}`);
+    if (isGeminiQuotaError(error)) {
+      logger.info(`${label} switching to Groq fallback`);
+      try {
+        const result = await fallback();
+        logger.info(`${label} Groq fallback successful, length: ${result.length}`);
+        return result;
+      } catch (fallbackError: any) {
+        logger.error(`${label} Groq fallback also failed:`, { message: fallbackError?.message });
+        throw fallbackError;
+      }
+    }
+    throw error;
+  }
+}
+
 export async function chatWithAI(message: string): Promise<string> {
   try {
     if (!message.trim()) {
@@ -273,17 +331,12 @@ ${dataContext.applicationStats.map(s => `- ${s.status}: ${s.count}`).join('\n')}
 
     const prompt = `${SYSTEM_PROMPT}\n${DATA_BLOCK}\n\nPertanyaan pengguna: ${message}`;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash', 
-      contents: [
-        {
-          role: 'user',
-          parts: [{ text: prompt }],
-        },
-      ],
-    });
+    const text = await callWithFallback(
+      () => callGemini(prompt),
+      () => callGroq(prompt),
+      'AI Chat',
+    );
 
-    const text = response.text ?? '';
     logger.info(`AI chat response received, length: ${text.length}`);
     return text || 'Maaf, saya tidak bisa memberikan jawaban saat ini. Silakan coba lagi.';
   } catch (error: any) {
@@ -291,11 +344,6 @@ ${dataContext.applicationStats.map(s => `- ${s.status}: ${s.count}`).join('\n')}
       message: error.message,
       status: error.status,
     });
-
-    if (error.message?.includes('quota') || error.status === 429) {
-      return 'Maaf, layanan AI sedang sibuk karena kuota terbatas. Silakan coba lagi nanti.';
-    }
-
     return 'Maaf, terjadi kesalahan saat memproses pertanyaan Anda. Silakan coba lagi nanti.';
   }
 }
