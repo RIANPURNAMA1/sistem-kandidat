@@ -58,6 +58,9 @@ const roleLabel: Record<string, string> = {
 export default function DashboardLayout({ role }: { role: string }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [isCollapsed, setIsCollapsed] = useState(false)
+  const [notifOpen, setNotifOpen] = useState(false)
+  const notifRef = useRef<HTMLDivElement>(null)
+  const queryClient = useQueryClient()
 
   useEffect(() => {
     const saved = localStorage.getItem('sidebarCollapsed')
@@ -82,10 +85,6 @@ export default function DashboardLayout({ role }: { role: string }) {
     refetchInterval: 30000,
     enabled: role === 'admin' || role === 'finance',
   })
-
-  const [notifOpen, setNotifOpen] = useState(false)
-  const notifRef = useRef<HTMLDivElement>(null)
-  const queryClient = useQueryClient()
 
   const { data: notifData } = useQuery({
     queryKey: ['notifications'],
@@ -129,46 +128,45 @@ export default function DashboardLayout({ role }: { role: string }) {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
+    <div className="flex h-screen bg-fb-gray overflow-hidden">
 
       {/* ── Desktop sidebar ── */}
       <div className="hidden lg:relative lg:flex">
-        {/* Collapse toggle */}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="absolute -right-3.5 top-4 flex items-center justify-center h-7 w-7 rounded-full border border-gray-200 bg-white hover:bg-gray-50 text-gray-500 shadow-sm z-50 transition-all hover:scale-105"
-        >
-          {isCollapsed ? (
-            <ChevronRight className="h-3.5 w-3.5" />
-          ) : (
-            <ChevronLeft className="h-3.5 w-3.5" />
+          className={cn(
+            'absolute -right-3 top-4 flex items-center justify-center h-6 w-6 rounded-full border z-50 transition-all hover:scale-105',
+            'border-fb-gray-light  bg-white text-fb-gray-dark hover:text-fb-blue shadow-sm'
           )}
+        >
+          {isCollapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
         </button>
 
         <aside className={cn(
           'flex flex-col bg-[#009ce1] flex-shrink-0 transition-all duration-300 relative overflow-y-auto',
-          isCollapsed ? 'w-[52px]' : 'w-52'
+          isCollapsed ? 'w-[56px]' : 'w-56'
         )}>
 
           {/* Logo */}
           <div className={cn(
-            'flex items-center h-12 border-b border-white/20 flex-shrink-0 transition-all duration-300',
-            isCollapsed ? 'justify-center px-0' : 'px-4 gap-2'
+            'flex items-center h-14 border-b border-white/10 flex-shrink-0',
+            isCollapsed ? 'justify-center px-0' : 'px-4 gap-2.5'
           )}>
-            <div className="h-7 w-7 bg-white rounded-full flex items-center justify-center flex-shrink-0">
-              <img src="/logo3.png" alt="mendunia.id" className="h-3.5 w-auto" />
+            <div className="h-8 w-8 bg-white rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
+              <img src="/logo3.png" alt="mendunia.id" className="h-4 w-auto" />
             </div>
             {!isCollapsed && (
-              <span className="font-semibold text-sm text-white truncate">
-                mendunia<span className="text-white">.id</span>
-              </span>
+              <div className="flex flex-col">
+                <span className="font-bold text-sm text-white tracking-tight">mendunia.id</span>
+                <span className="text-[9px] text-blue-200/60 font-medium -mt-0.5">Management</span>
+              </div>
             )}
           </div>
 
           {/* Nav */}
           <nav className={cn(
-            'flex-1 space-y-0.5',
-            isCollapsed ? 'p-1.5 overflow-visible' : 'p-2 overflow-y-auto overflow-x-hidden'
+            'flex-1 space-y-0.5 py-3',
+            isCollapsed ? 'px-2' : 'px-2.5'
           )}>
             {navItems.map((item) => {
               const isActive = location.pathname === item.path
@@ -179,34 +177,32 @@ export default function DashboardLayout({ role }: { role: string }) {
                   key={item.path}
                   to={item.path}
                   className={cn(
-                    'flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all relative group',
+                    'flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-all relative group',
                     isActive
-                      ? 'bg-white/20 text-white'
-                      : 'text-white/70 hover:bg-white/10 hover:text-white',
-                    isCollapsed ? 'justify-center px-0' : ''
+                      ? 'bg-white/15 text-white shadow-sm'
+                      : 'text-blue-200/70 hover:bg-white/5 hover:text-white',
+                    isCollapsed ? 'justify-center px-0 py-2.5' : ''
                   )}
                 >
-                  {/* Active indicator bar */}
                   {isActive && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 bg-white rounded-r-full" />
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-white rounded-r-full shadow-sm" />
                   )}
                   <div className="relative">
                     <item.icon className={cn(
-                      'h-3.5 w-3.5 flex-shrink-0',
-                      isActive ? 'text-white' : 'text-white/50 group-hover:text-white'
+                      'h-4 w-4 flex-shrink-0',
+                      isActive ? 'text-white' : 'text-blue-300/60 group-hover:text-white'
                     )} />
                     {isPayment && count > 0 && (
-                      <span className="absolute -top-1.5 -right-1.5 h-3.5 min-w-[14px] flex items-center justify-center bg-red-500 text-white text-[8px] font-bold rounded-full px-0.5 leading-none">
+                      <span className="absolute -top-1.5 -right-2 h-3.5 min-w-[14px] flex items-center justify-center bg-red-500 text-white text-[8px] font-bold rounded-full px-0.5 leading-none ring-2 ring-[#009ce1]">
                         {count > 99 ? '99+' : count}
                       </span>
                     )}
                   </div>
                   {!isCollapsed && (
-                    <span className="flex items-center gap-1.5">{item.label}</span>
-                  )}
-                  {/* Collapsed tooltip */}
-                  {isCollapsed && (
-                    <div className="absolute left-full ml-3 px-2.5 py-1.5 bg-[#009ce1] text-white text-xs font-medium rounded-md shadow-lg opacity-0 scale-95 -translate-x-1 group-hover:opacity-100 group-hover:scale-100 group-hover:translate-x-0 pointer-events-none transition-all duration-150 whitespace-nowrap z-50">
+                      <span className="flex items-center gap-1.5">{item.label}</span>
+                    )}
+                    {isCollapsed && (
+                      <div className="absolute left-full ml-2 px-2.5 py-1.5 bg-[#007bc4] text-white text-xs font-medium rounded-md shadow-lg opacity-0 scale-95 -translate-x-1 group-hover:opacity-100 group-hover:scale-100 group-hover:translate-x-0 pointer-events-none transition-all duration-150 whitespace-nowrap z-50 border border-white/10">
                       {item.label}
                     </div>
                   )}
@@ -215,22 +211,19 @@ export default function DashboardLayout({ role }: { role: string }) {
             })}
           </nav>
 
-          {/* Bottom actions */}
-          <div className={cn(
-            'border-t border-white/20',
-            isCollapsed ? 'p-1.5 overflow-visible' : 'p-2'
-          )}>
+          {/* Bottom section */}
+          <div className="border-t border-white/10 py-2 px-2.5 space-y-0.5">
             <Link
               to="/"
               className={cn(
-                'flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-white/70 hover:bg-white/10 hover:text-white transition-all relative group',
-                isCollapsed ? 'justify-center px-0' : ''
+                'flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-blue-200/70 hover:bg-white/5 hover:text-white transition-all relative group',
+                isCollapsed ? 'justify-center px-0 py-2.5' : ''
               )}
             >
-              <Home className="h-3.5 w-3.5 text-white/50 group-hover:text-white flex-shrink-0" />
+              <Home className="h-4 w-4 text-blue-300/60 group-hover:text-white flex-shrink-0" />
               {!isCollapsed && <span>Beranda</span>}
               {isCollapsed && (
-                <div className="absolute left-full ml-3 px-2.5 py-1.5 bg-[#009ce1] text-white text-xs font-medium rounded-md shadow-lg opacity-0 scale-95 -translate-x-1 group-hover:opacity-100 group-hover:scale-100 group-hover:translate-x-0 pointer-events-none transition-all duration-150 whitespace-nowrap z-50">
+                <div className="absolute left-full ml-2 px-2.5 py-1.5 bg-[#007bc4] text-white text-xs font-medium rounded-md shadow-lg opacity-0 scale-95 -translate-x-1 group-hover:opacity-100 group-hover:scale-100 group-hover:translate-x-0 pointer-events-none transition-all duration-150 whitespace-nowrap z-50 border border-white/10">
                   Beranda
                 </div>
               )}
@@ -238,14 +231,14 @@ export default function DashboardLayout({ role }: { role: string }) {
             <button
               onClick={handleLogout}
               className={cn(
-                'w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-white/70 hover:bg-white/10 hover:text-red-300 transition-all relative group',
-                isCollapsed ? 'justify-center px-0' : ''
+                'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-blue-200/70 hover:bg-white/5 hover:text-red-300 transition-all relative group',
+                isCollapsed ? 'justify-center px-0 py-2.5' : ''
               )}
             >
-              <LogOut className="h-3.5 w-3.5 text-white/50 group-hover:text-red-300 flex-shrink-0" />
+              <LogOut className="h-4 w-4 text-blue-300/60 group-hover:text-red-300 flex-shrink-0" />
               {!isCollapsed && <span>Keluar</span>}
               {isCollapsed && (
-                <div className="absolute left-full ml-3 px-2.5 py-1.5 bg-[#009ce1] text-white text-xs font-medium rounded-md shadow-lg opacity-0 scale-95 -translate-x-1 group-hover:opacity-100 group-hover:scale-100 group-hover:translate-x-0 pointer-events-none transition-all duration-150 whitespace-nowrap z-50">
+                <div className="absolute left-full ml-2 px-2.5 py-1.5 bg-[#007bc4] text-white text-xs font-medium rounded-md shadow-lg opacity-0 scale-95 -translate-x-1 group-hover:opacity-100 group-hover:scale-100 group-hover:translate-x-0 pointer-events-none transition-all duration-150 whitespace-nowrap z-50 border border-white/10">
                   Keluar
                 </div>
               )}
@@ -254,28 +247,28 @@ export default function DashboardLayout({ role }: { role: string }) {
 
           {/* User info */}
           <div className={cn(
-            'border-t border-white/20 py-2',
-            isCollapsed ? 'px-1.5 overflow-visible' : 'px-2'
+            'border-t border-white/10 py-2.5',
+            isCollapsed ? 'px-2' : 'px-3'
           )}>
             <div className={cn(
               'flex items-center relative group',
-              isCollapsed ? 'justify-center' : 'gap-3 px-2 py-1'
+              isCollapsed ? 'justify-center' : 'gap-2.5'
             )}>
-              <div className="h-7 w-7 rounded-full bg-white flex items-center justify-center text-[#009ce1] text-[10px] font-bold flex-shrink-0">
+              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-sm ring-2 ring-white/10">
                 {user?.email?.[0].toUpperCase()}
               </div>
               {!isCollapsed && (
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-semibold truncate text-white">
-                    {user?.candidate?.fullName || user?.email}
+                  <p className="text-xs font-semibold truncate text-white/90">
+                    {user?.candidate?.fullName || user?.email?.split('@')[0]}
                   </p>
-                  <p className="text-[10px] text-white/60 mt-0.5">{roleLabel[role]}</p>
+                  <p className="text-[10px] text-blue-300/60 mt-0.5">{roleLabel[role]}</p>
                 </div>
               )}
               {isCollapsed && (
-                <div className="absolute left-full ml-3 px-3 py-2 bg-[#009ce1] text-white text-xs font-medium rounded-md shadow-lg opacity-0 scale-95 -translate-x-1 group-hover:opacity-100 group-hover:scale-100 group-hover:translate-x-0 pointer-events-none transition-all duration-150 whitespace-nowrap z-50">
-                  <p className="font-semibold">{user?.candidate?.fullName || user?.email}</p>
-                  <p className="text-[10px] text-gray-400 mt-0.5">{roleLabel[role]}</p>
+                <div className="absolute left-full ml-2 px-3 py-2 bg-[#007bc4] text-white text-xs font-medium rounded-md shadow-lg opacity-0 scale-95 -translate-x-1 group-hover:opacity-100 group-hover:scale-100 group-hover:translate-x-0 pointer-events-none transition-all duration-150 whitespace-nowrap z-50 border border-white/10">
+                  <p className="font-semibold">{user?.candidate?.fullName || user?.email?.split('@')[0]}</p>
+                  <p className="text-[10px] text-blue-300/60 mt-0.5">{roleLabel[role]}</p>
                 </div>
               )}
             </div>
@@ -287,29 +280,22 @@ export default function DashboardLayout({ role }: { role: string }) {
       {/* ── Mobile sidebar overlay ── */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
-          <aside className="absolute left-0 top-0 bottom-0 w-64 bg-[#009ce1] z-10 shadow-xl">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
+          <aside className="absolute left-0 top-0 bottom-0 w-64 bg-[#009ce1] z-10 shadow-2xl">
             <div className="flex flex-col h-full">
-              {/* Mobile header */}
-              <div className="flex items-center justify-between px-4 h-12 border-b border-white/20">
-                <div className="flex items-center gap-2">
-                  <div className="h-7 w-7 bg-white rounded-full flex items-center justify-center flex-shrink-0">
-                    <img src="/logo3.png" alt="mendunia.id" className="h-3.5 w-auto" />
+              <div className="flex items-center justify-between px-4 h-14 border-b border-white/10">
+                <div className="flex items-center gap-2.5">
+                  <div className="h-8 w-8 bg-white rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
+                    <img src="/logo3.png" alt="mendunia.id" className="h-4 w-auto" />
                   </div>
-                  <span className="font-semibold text-sm text-white">
-                    mendunia<span className="text-white">.id</span>
-                  </span>
+                  <span className="font-bold text-sm text-white">mendunia.id</span>
                 </div>
-                <button
-                  onClick={() => setSidebarOpen(false)}
-                  className="h-7 w-7 flex items-center justify-center rounded-md hover:bg-white/10 transition-colors"
-                >
+                <button onClick={() => setSidebarOpen(false)} className="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors">
                   <X className="h-4 w-4 text-white/70" />
                 </button>
               </div>
 
-              {/* Mobile nav */}
-              <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto">
+              <nav className="flex-1 p-2.5 space-y-0.5 overflow-y-auto">
                 {navItems.map((item) => {
                   const isActive = location.pathname === item.path
                   const isPayment = item.label === 'Pembayaran'
@@ -320,22 +306,22 @@ export default function DashboardLayout({ role }: { role: string }) {
                       to={item.path}
                       onClick={() => setSidebarOpen(false)}
                       className={cn(
-                        'flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all relative',
+                        'flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium transition-all relative',
                         isActive
-                          ? 'bg-white/20 text-white'
-                          : 'text-white/70 hover:bg-white/10 hover:text-white'
+                          ? 'bg-white/15 text-white shadow-sm'
+                          : 'text-blue-200/70 hover:bg-white/5 hover:text-white'
                       )}
                     >
                       {isActive && (
-                        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 bg-white rounded-r-full" />
+                        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-white rounded-r-full" />
                       )}
                       <div className="relative">
                         <item.icon className={cn(
-                          'h-3.5 w-3.5 flex-shrink-0',
-                          isActive ? 'text-white' : 'text-white/50'
+                          'h-4 w-4 flex-shrink-0',
+                          isActive ? 'text-white' : 'text-blue-300/60'
                         )} />
                         {isPayment && count > 0 && (
-                          <span className="absolute -top-1.5 -right-1.5 h-3.5 min-w-[14px] flex items-center justify-center bg-red-500 text-white text-[8px] font-bold rounded-full px-0.5 leading-none">
+                          <span className="absolute -top-1.5 -right-2 h-3.5 min-w-[14px] flex items-center justify-center bg-red-500 text-white text-[8px] font-bold rounded-full px-0.5 leading-none ring-2 ring-[#009ce1]">
                             {count > 99 ? '99+' : count}
                           </span>
                         )}
@@ -346,13 +332,12 @@ export default function DashboardLayout({ role }: { role: string }) {
                 })}
               </nav>
 
-              {/* Mobile bottom */}
-              <div className="p-2 border-t border-white/20">
+              <div className="p-2.5 border-t border-white/10">
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-white/70 hover:bg-white/10 hover:text-red-300 transition-all"
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium text-blue-200/70 hover:bg-white/5 hover:text-red-300 transition-all"
                 >
-                  <LogOut className="h-3.5 w-3.5 text-white/50" />
+                  <LogOut className="h-4 w-4 text-blue-300/60" />
                   Keluar
                 </button>
               </div>
@@ -364,58 +349,53 @@ export default function DashboardLayout({ role }: { role: string }) {
       {/* ── Main content ── */}
       <div className="flex-1 flex flex-col overflow-hidden">
 
-        {/* Top bar */}
-        <header className="flex items-center gap-3 h-14 bg-white shadow-sm border-b border-gray-200/60 px-5 flex-shrink-0">
-          {/* Mobile menu + accent line */}
+        {/* Top bar — Meta-style minimal header */}
+        <header className="flex items-center gap-3 h-14 bg-white border-b border-fb-gray-light/60  px-4 lg:px-6 flex-shrink-0">
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <Button
               variant="ghost"
               size="icon"
-              className="lg:hidden h-8 w-8 text-gray-500 hover:bg-gray-100"
+              className="lg:hidden h-8 w-8 text-fb-gray-dark hover:bg-fb-gray"
               onClick={() => setSidebarOpen(true)}
             >
               <Menu className="h-4 w-4" />
             </Button>
-            <div className="h-6 w-px bg-gray-200 hidden lg:block" />
           </div>
 
-          {/* Search */}
-          <div className="hidden sm:flex items-center gap-2 bg-gray-50/80 border border-gray-200 rounded-full px-3.5 py-1.5 cursor-text hover:border-gray-300 hover:bg-gray-50 transition-all duration-200 group/search w-56">
-            <Search className="h-3.5 w-3.5 text-gray-400 group-hover/search:text-gray-500 transition-colors" />
-            <span className="text-xs text-gray-400 group-hover/search:text-gray-500 transition-colors">Cari menu, data...</span>
-            <div className="ml-auto hidden md:flex items-center gap-0.5">
-              <kbd className="text-[9px] text-gray-300 bg-gray-100/80 px-1 py-0.5 rounded border border-gray-200/60 leading-none">⌘</kbd>
-              <kbd className="text-[9px] text-gray-300 bg-gray-100/80 px-1 py-0.5 rounded border border-gray-200/60 leading-none">K</kbd>
+          {/* Search — Meta-style */}
+          <div className="hidden md:flex items-center gap-2 bg-fb-gray border-0 rounded-lg px-3.5 py-1.5 cursor-text w-56 group/search">
+            <Search className="h-3.5 w-3.5 text-fb-gray-dark" />
+            <span className="text-xs text-fb-gray-dark">Search...</span>
+            <div className="ml-auto hidden lg:flex items-center gap-0.5">
+              <kbd className="text-[9px] text-fb-gray-dark/40/40 bg-white px-1 py-0.5 rounded border border-fb-gray-light  leading-none">⌘</kbd>
+              <kbd className="text-[9px] text-fb-gray-dark/40/40 bg-white px-1 py-0.5 rounded border border-fb-gray-light  leading-none">K</kbd>
             </div>
           </div>
-
-          {/* Divider */}
-          <div className="h-6 w-px bg-gray-200 hidden sm:block" />
 
           {/* Notification */}
           <div className="relative" ref={notifRef}>
             <Button
               variant="ghost"
               size="icon"
-              className="relative h-8 w-8 text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-all"
+              className="relative h-8 w-8 text-fb-gray-dark hover:bg-fb-gray rounded-lg transition-all"
               onClick={() => setNotifOpen(!notifOpen)}
             >
               <Bell className="h-4 w-4" />
               {unreadCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 h-4 min-w-[16px] flex items-center justify-center bg-red-500 text-white text-[9px] font-bold rounded-full px-1 ring-2 ring-white animate-pulse">
+                <span className="absolute -top-0.5 -right-0.5 h-4 min-w-[16px] flex items-center justify-center bg-red-500 text-white text-[9px] font-bold rounded-full px-1 ring-2 ring-white">
                   {unreadCount > 99 ? '99+' : unreadCount}
                 </span>
               )}
             </Button>
 
             {notifOpen && (
-              <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-lg shadow-indigo-500/5 border border-gray-200 z-50 overflow-hidden animate-in slide-in-from-top-2 fade-in duration-150">
-                <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-indigo-50/50 to-transparent">
-                  <h3 className="text-sm font-semibold text-gray-800">Notifikasi</h3>
+              <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-lg border border-fb-gray-light  z-50 overflow-hidden animate-in slide-in-from-top-2 fade-in duration-150">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-fb-gray-light/60 ">
+                  <h3 className="text-sm font-semibold text-fb-blue">Notifikasi</h3>
                   {unreadCount > 0 && (
                     <button
                       onClick={() => markReadMutation.mutate()}
-                      className="text-[11px] text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1 transition-colors"
+                      className="text-[11px] text-fb-blue/70 hover:text-fb-blue/70 font-medium flex items-center gap-1 transition-colors"
                     >
                       <CheckCheck className="h-3 w-3" />
                       Tandai dibaca
@@ -424,24 +404,24 @@ export default function DashboardLayout({ role }: { role: string }) {
                 </div>
                 <div className="max-h-72 overflow-y-auto">
                   {notifications.length === 0 ? (
-                    <div className="px-4 py-8 text-center text-sm text-gray-400">Tidak ada notifikasi</div>
+                    <div className="px-4 py-8 text-center text-sm text-fb-gray-dark">Tidak ada notifikasi</div>
                   ) : (
                     notifications.map((n: any) => (
                       <div
                         key={n.id}
-                        className={`px-4 py-3 border-b border-gray-50 last:border-0 hover:bg-indigo-50/20 transition-colors ${!n.isRead ? 'bg-indigo-50/30' : ''}`}
+                        className={`px-4 py-3 border-b border-fb-gray-light/40  last:border-0 hover:bg-fb-gray/50/50 transition-colors ${!n.isRead ? 'bg-fb-blue/5' : ''}`}
                       >
                         <div className="flex items-start gap-2.5">
-                          <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-indigo-50 to-indigo-100 flex items-center justify-center text-sm flex-shrink-0">
+                          <div className="h-7 w-7 rounded-lg bg-fb-blue-light flex items-center justify-center text-sm flex-shrink-0">
                             {notifIcons[n.type] || '🔔'}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <p className={`text-xs ${!n.isRead ? 'font-semibold' : 'font-medium'} text-gray-900`}>{n.title}</p>
-                            <p className="text-[11px] text-gray-500 mt-0.5 line-clamp-2">{n.message}</p>
-                            <p className="text-[10px] text-gray-400 mt-1">{formatDateTime(n.createdAt)}</p>
+                            <p className={`text-xs ${!n.isRead ? 'font-semibold' : 'font-medium'} text-fb-blue`}>{n.title}</p>
+                            <p className="text-[11px] text-fb-gray-dark mt-0.5 line-clamp-2">{n.message}</p>
+                            <p className="text-[10px] text-fb-gray-dark/60/60 mt-1">{formatDateTime(n.createdAt)}</p>
                           </div>
                           {!n.isRead && (
-                            <span className="h-2 w-2 rounded-full bg-indigo-600 flex-shrink-0 mt-1.5 shadow-sm shadow-indigo-300" />
+                            <span className="h-2 w-2 rounded-full bg-fb-blue flex-shrink-0 mt-1.5" />
                           )}
                         </div>
                       </div>
@@ -452,21 +432,17 @@ export default function DashboardLayout({ role }: { role: string }) {
             )}
           </div>
 
-          {/* Divider */}
-          <div className="h-6 w-px bg-gray-200" />
-
-          {/* User avatar */}
-          <div className="flex items-center gap-2 cursor-pointer group px-1.5 py-1 rounded-lg hover:bg-gray-50 transition-all duration-200">
-            <div className="h-7 w-7 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center text-white text-[10px] font-bold shadow-sm shadow-indigo-200 ring-1 ring-white/50">
+          {/* User avatar — Meta-style */}
+          <div className="flex items-center gap-2 cursor-pointer group pl-1">
+            <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-fb-blue to-fb-blue-dark flex items-center justify-center text-white text-[10px] font-bold shadow-sm ring-1 ring-white/50">
               {user?.email?.[0].toUpperCase()}
             </div>
             <div className="hidden sm:block">
-              <p className="text-xs font-medium text-gray-700 group-hover:text-gray-900 transition-colors leading-tight">
+              <p className="text-xs font-medium text-fb-blue group-hover:text-fb-blue-dark transition-colors leading-tight">
                 {user?.candidate?.fullName || user?.email?.split('@')[0] || 'User'}
               </p>
-              <p className="text-[10px] text-gray-400 leading-tight">{roleLabel[role]}</p>
             </div>
-            <ChevronDown className="h-3 w-3 text-gray-400 group-hover:text-gray-600 transition-colors hidden sm:block" />
+            <ChevronDown className="h-3 w-3 text-fb-gray-dark group-hover:text-fb-blue transition-colors hidden sm:block" />
           </div>
         </header>
 
@@ -477,7 +453,6 @@ export default function DashboardLayout({ role }: { role: string }) {
 
       </div>
 
-      {/* AI Chat Assistant — only for admin/finance */}
       {role !== 'candidate' && role !== 'affiliate' && <AIChat />}
     </div>
   )

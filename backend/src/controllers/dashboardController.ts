@@ -39,6 +39,11 @@ export const getAdminDashboard = catchAsync(async (req: Request, res: Response) 
     commissionStats,
     topPayments,
     topCommissions,
+    paymentStatusStats,
+    genderStats,
+    educationStats,
+    documentStats,
+    recentAuditLogs,
   ] = await Promise.all([
     prisma.candidate.count(),
     prisma.program.count({ where: { status: 'AKTIF' } }),
@@ -68,6 +73,30 @@ export const getAdminDashboard = catchAsync(async (req: Request, res: Response) 
     prisma.commission.findMany({
       where: { status: { in: ['APPROVED', 'PAID'] }, createdAt: dateFilter },
       select: { amount: true, affiliate: { select: { id: true, name: true, code: true } } },
+    }),
+    prisma.payment.groupBy({
+      by: ['status'],
+      _count: { _all: true },
+    }),
+    prisma.candidate.groupBy({
+      by: ['gender'],
+      _count: { _all: true },
+    }),
+    prisma.candidate.groupBy({
+      by: ['lastEducation'],
+      _count: { _all: true },
+      orderBy: { _count: { lastEducation: 'desc' } },
+    }),
+    prisma.document.groupBy({
+      by: ['status'],
+      _count: { _all: true },
+    }),
+    prisma.auditLog.findMany({
+      take: 5,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        user: { select: { email: true } },
+      },
     }),
   ]);
 
@@ -228,6 +257,49 @@ export const getAdminDashboard = catchAsync(async (req: Request, res: Response) 
     ];
   }
 
+  // Demo data for new stats when empty
+  const finalPaymentStatusStats = isDbEmpty
+    ? [
+        { status: 'VALID', count: 95 },
+        { status: 'MENUNGGU_VERIFIKASI', count: 7 },
+        { status: 'MENUNGGU_UPLOAD', count: 12 },
+        { status: 'DITOLAK', count: 3 },
+      ]
+    : paymentStatusStats.map(p => ({ status: p.status, count: p._count._all }));
+
+  const finalGenderStats = isDbEmpty
+    ? [
+        { gender: 'LAKI_LAKI', count: 38 },
+        { gender: 'PEREMPUAN', count: 18 },
+      ]
+    : genderStats.map(g => ({ gender: g.gender, count: g._count._all }));
+
+  const finalEducationStats = isDbEmpty
+    ? [
+        { lastEducation: 'SMA/SMK', count: 32 },
+        { lastEducation: 'D3', count: 12 },
+        { lastEducation: 'S1', count: 10 },
+        { lastEducation: 'SMP', count: 2 },
+      ]
+    : educationStats.map(e => ({ lastEducation: e.lastEducation, count: e._count._all }));
+
+  const finalDocumentStats = isDbEmpty
+    ? [
+        { status: 'VERIFIED', count: 65 },
+        { status: 'PENDING', count: 28 },
+        { status: 'REJECTED', count: 4 },
+      ]
+    : documentStats.map(d => ({ status: d.status, count: d._count._all }));
+
+  const finalAuditLogs = recentAuditLogs.map(log => ({
+    id: log.id,
+    action: log.action,
+    resource: log.resource,
+    resourceId: log.resourceId,
+    userEmail: log.user?.email || null,
+    createdAt: log.createdAt,
+  }));
+
   // Demo top programs & affiliates when empty
   const finalTopPrograms = isDbEmpty
     ? [
@@ -264,6 +336,11 @@ export const getAdminDashboard = catchAsync(async (req: Request, res: Response) 
     statusStats,
     topPrograms: finalTopPrograms,
     topAffiliates: finalTopAffiliates,
+    paymentStatusStats: finalPaymentStatusStats,
+    genderStats: finalGenderStats,
+    educationStats: finalEducationStats,
+    documentStats: finalDocumentStats,
+    recentAuditLogs: finalAuditLogs,
     isDemo: isDbEmpty,
   });
 });

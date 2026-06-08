@@ -6,20 +6,26 @@ import { generateToken } from '../middlewares/auth';
 import { AppError, catchAsync, sendSuccess } from '../utils/AppError';
 import { processPaymentProof } from '../services/ocrService';
 import { uploadFile } from '../config/minio';
+import { sendWaOtp } from '../services/starSenderService';
 import { v4 as uuidv4 } from 'uuid';
 import { logger } from '../utils/logger';
 
 export const register = catchAsync(async (req: Request, res: Response) => {
-  const { email, password, role = 'KANDIDAT', refCode } = req.body;
+  const { email, password, role = 'KANDIDAT', refCode, phone } = req.body;
 
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) throw new AppError('Email sudah terdaftar', 409);
 
+  if (phone) {
+    const existingPhone = await prisma.user.findUnique({ where: { phone } });
+    if (existingPhone) throw new AppError('Nomor WhatsApp sudah terdaftar', 409);
+  }
+
   const hashed = await bcrypt.hash(password, 12);
 
   const user = await prisma.user.create({
-    data: { email, password: hashed, role: role as any },
-    select: { id: true, email: true, role: true, createdAt: true },
+    data: { email, password: hashed, role: role as any, phone: phone || undefined },
+    select: { id: true, email: true, role: true, phone: true, createdAt: true },
   });
 
   // Track affiliate click-to-register if ref code exists
@@ -46,7 +52,7 @@ export const register = catchAsync(async (req: Request, res: Response) => {
         kabupaten: '-',
         provinsi: '-',
         lastEducation: '-',
-        phone: '-',
+        phone: phone || '-',
         referredBy: refCode || null,
       },
     });
@@ -63,11 +69,16 @@ export const registerAffiliate = catchAsync(async (req: Request, res: Response) 
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) throw new AppError('Email sudah terdaftar', 409);
 
+  if (phone) {
+    const existingPhone = await prisma.user.findUnique({ where: { phone } });
+    if (existingPhone) throw new AppError('Nomor WhatsApp sudah terdaftar', 409);
+  }
+
   const hashed = await bcrypt.hash(password, 12);
 
   const result = await prisma.$transaction(async (tx) => {
     const user = await tx.user.create({
-      data: { email, password: hashed, role: 'AFFILIATE' },
+      data: { email, password: hashed, role: 'AFFILIATE', phone: phone || undefined },
     });
 
     const code = `AFF${user.id.slice(0, 6).toUpperCase().replace(/-/g, '')}`;
@@ -120,12 +131,17 @@ export const registerAffiliate = catchAsync(async (req: Request, res: Response) 
 });
 
 export const registerWithPayment = catchAsync(async (req: Request, res: Response) => {
-  const { email, password, refCode, programId, couponCode } = req.body;
+  const { email, password, refCode, programId, couponCode, phone } = req.body;
 
   if (!req.file) throw new AppError('Bukti pembayaran diperlukan', 400);
 
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) throw new AppError('Email sudah terdaftar', 409);
+
+  if (phone) {
+    const existingPhone = await prisma.user.findUnique({ where: { phone } });
+    if (existingPhone) throw new AppError('Nomor WhatsApp sudah terdaftar', 409);
+  }
 
   const hashed = await bcrypt.hash(password, 12);
 
@@ -157,7 +173,7 @@ export const registerWithPayment = catchAsync(async (req: Request, res: Response
     }
 
     const user = await tx.user.create({
-      data: { email, password: hashed, role: 'KANDIDAT' },
+      data: { email, password: hashed, role: 'KANDIDAT', phone: phone || undefined },
       select: { id: true, email: true, role: true, createdAt: true },
     });
 
@@ -176,7 +192,7 @@ export const registerWithPayment = catchAsync(async (req: Request, res: Response
         kabupaten: '-',
         provinsi: '-',
         lastEducation: '-',
-        phone: '-',
+        phone: phone || '-',
         referredBy: validRefCode,
       },
     });
@@ -346,4 +362,71 @@ export const changePassword = catchAsync(async (req: Request, res: Response) => 
   });
 
   return sendSuccess(res, null, 'Password berhasil diubah');
+});
+
+export const sendOtp = catchAsync(async (req: Request, res: Response) => {
+  const { phone } = req.body;
+
+  if (!phone) throw new AppError('Nomor WhatsApp wajib diisi', 400);
+
+  // Check if phone is registered
+  const user = await prisma.user.findUnique({ where: { phone } });
+  if (!user || !user.isActive) throw new AppError('Nomor WhatsApp tidak terdaftar', 404);
+
+  // Generate 6-digit OTP
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+
+  // Save OTP
+  await prisma.otpCode.create({
+    data: { phone, code, expiresAt },
+  });
+
+  // Send OTP via StarSender
+  const sent = await sendWaOtp(phone, code);
+  if (!sent) throw new AppError('Gagal mengirim OTP. Silakan coba lagi.', 500);
+
+  return sendSuccess(res, null, 'Kode OTP telah dikirim ke WhatsApp Anda');
+});
+
+export const verifyOtp = catchAsync(async (req: Request, res: Response) => {
+  const { phone, code } = req.body;
+
+  if (!phone || !code) throw new AppError('Nomor WhatsApp dan kode OTP wajib diisi', 400);
+
+  // Find valid OTP
+  const otp = await prisma.otpCode.findFirst({
+    where: {
+      phone,
+      code,
+      usedAt: null,
+      expiresAt: { gte: new Date() },
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  if (!otp) throw new AppError('Kode OTP tidak valid atau sudah kadaluarsa', 400);
+
+  // Mark OTP as used
+  await prisma.otpCode.update({
+    where: { id: otp.id },
+    data: { usedAt: new Date() },
+  });
+
+  // Find user by phone
+  const user = await prisma.user.findUnique({ where: { phone } });
+  if (!user || !user.isActive) throw new AppError('Akun tidak ditemukan atau tidak aktif', 401);
+
+  // Update last login
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { lastLoginAt: new Date() },
+  });
+
+  const token = generateToken({ userId: user.id, email: user.email, role: user.role });
+
+  return sendSuccess(res, {
+    user: { id: user.id, email: user.email, role: user.role },
+    token,
+  }, 'Login berhasil');
 });

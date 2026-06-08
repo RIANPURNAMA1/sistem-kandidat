@@ -15,7 +15,11 @@ interface AuthState {
   token: string | null
   isAuthenticated: boolean
   isLoading: boolean
+  isOtpLoading: boolean
+  otpSent: boolean
   login: (email: string, password: string) => Promise<void>
+  sendOtp: (phone: string) => Promise<void>
+  verifyOtp: (phone: string, code: string) => Promise<void>
   logout: () => void
   setUser: (user: User) => void
 }
@@ -27,6 +31,8 @@ export const useAuthStore = create<AuthState>()(
       token: null,
       isAuthenticated: false,
       isLoading: false,
+      isOtpLoading: false,
+      otpSent: false,
 
       login: async (email, password) => {
         set({ isLoading: true })
@@ -45,9 +51,38 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
+      sendOtp: async (phone) => {
+        set({ isOtpLoading: true, otpSent: false })
+        try {
+          await api.post('/auth/send-otp', { phone })
+          set({ isOtpLoading: false, otpSent: true })
+        } catch (error) {
+          set({ isOtpLoading: false })
+          throw error
+        }
+      },
+
+      verifyOtp: async (phone, code) => {
+        set({ isLoading: true })
+        try {
+          const { data } = await api.post('/auth/verify-otp', { phone, code })
+          localStorage.setItem('token', data.data.token)
+          set({
+            user: data.data.user,
+            token: data.data.token,
+            isAuthenticated: true,
+            isLoading: false,
+            otpSent: false,
+          })
+        } catch (error) {
+          set({ isLoading: false })
+          throw error
+        }
+      },
+
       logout: () => {
         localStorage.removeItem('token')
-        set({ user: null, token: null, isAuthenticated: false })
+        set({ user: null, token: null, isAuthenticated: false, otpSent: false })
       },
 
       setUser: (user) => set({ user }),

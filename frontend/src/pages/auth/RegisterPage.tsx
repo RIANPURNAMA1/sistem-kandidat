@@ -14,6 +14,7 @@ const schema = z.object({
   email: z.string().email('Format email tidak valid'),
   password: z.string().min(8, 'Password minimal 8 karakter'),
   confirmPassword: z.string(),
+  phone: z.string().min(10, 'Nomor WhatsApp minimal 10 digit').regex(/^0\d{9,}$/, 'Format nomor tidak valid (mulai dengan 0)'),
 }).refine(d => d.password === d.confirmPassword, {
   message: 'Password tidak cocok',
   path: ['confirmPassword'],
@@ -160,7 +161,7 @@ export default function RegisterPage() {
   }
 
   const nextStep = async () => {
-    const fields: (keyof FormData)[] = step === 1 ? ['email', 'password', 'confirmPassword'] : []
+    const fields: (keyof FormData)[] = step === 1 ? ['email', 'phone', 'password', 'confirmPassword'] : []
     const valid = await trigger(fields)
     if (valid) setStep(s => Math.min(s + 1, 3))
   }
@@ -178,6 +179,7 @@ export default function RegisterPage() {
       const fd = new FormData()
       fd.append('email', data.email)
       fd.append('password', data.password)
+      fd.append('phone', data.phone)
       fd.append('proof', proofFile)
       if (refCode) fd.append('refCode', refCode)
       if (programId) fd.append('programId', programId)
@@ -293,6 +295,20 @@ export default function RegisterPage() {
                   {...register('email')} 
                 />
                 {errors.email && <p className="text-xs text-rose-500 font-medium animate-in fade-in">{errors.email.message}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phone" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Nomor WhatsApp
+                </Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  placeholder="08123456789"
+                  className="h-10 rounded-md bg-transparent border-border/60 focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary/30 transition-colors"
+                  {...register('phone')}
+                />
+                {errors.phone && <p className="text-xs text-rose-500 font-medium animate-in fade-in">{errors.phone.message}</p>}
               </div>
 
               <div className="space-y-2">
