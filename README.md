@@ -1,4 +1,4 @@
-# 🌏 KerjaNusantara — Sistem Pendaftaran Kandidat & Affiliate Berbasis AI OCR
+# 🌏 Mendunia — Sistem Pendaftaran Kandidat & Affiliate Berbasis AI OCR
 
 Platform digital terintegrasi untuk mengelola pendaftaran kandidat program kerja luar negeri, dilengkapi sistem affiliate marketing, pembayaran manual, dan verifikasi AI OCR menggunakan Google Gemini Vision.
 
