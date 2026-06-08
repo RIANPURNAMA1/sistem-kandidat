@@ -7,13 +7,8 @@ import { Input, Label, Select, Textarea } from '@/components/ui/index'
 import { toast } from '@/components/ui/toaster'
 import { formatCurrency } from '@/lib/utils'
 import api from '@/services/api'
-
-interface Field {
-  key: string
-  label: string
-  required: boolean
-  enabled: boolean
-}
+import type { Template, Field } from '@/components/templates'
+import { BaseLayout, templateStyles } from '@/components/templates'
 
 interface Program {
   id: string
@@ -83,6 +78,8 @@ export default function CheckoutFormPage() {
   const isAffiliate = setting?.formType === 'AFFILIATE'
   const selectedProgram = programs.find((p: Program) => p.id === selectedProgramId)
   const fields: Field[] = (setting?.fields || []).filter((f: Field) => f.enabled)
+  const template = (setting?.template as Template) || 'default'
+  const ocrEnabled = setting?.ocrEnabled !== false
   const programPrice = selectedProgram ? Number(selectedProgram.fee) : null
 
   const handleApplyCoupon = async () => {
@@ -115,8 +112,10 @@ export default function CheckoutFormPage() {
     setProofFile(file)
     setProofPreview(URL.createObjectURL(file))
     setOcrResult(null)
-    setOcrLoading(true)
 
+    if (!ocrEnabled) return
+
+    setOcrLoading(true)
     try {
       const fd = new FormData()
       fd.append('proof', file)
@@ -276,6 +275,27 @@ export default function CheckoutFormPage() {
         </div>
       )
     }
+    if (field.key === 'lastEducation') {
+      return (
+        <div key={field.key} className="space-y-2">
+          <Label className="text-sm font-medium text-foreground">
+            {field.label} {field.required && <span className="text-red-500">*</span>}
+          </Label>
+          <Select value={fieldValues[field.key] || ''} onChange={e => updateField(field.key, e.target.value)} className={s.inputClass}>
+            <option value="">Pilih {field.label}</option>
+            <option value="SD">SD / Sederajat</option>
+            <option value="SMP">SMP / Sederajat</option>
+            <option value="SMA">SMA / Sederajat</option>
+            <option value="SMK">SMK / Sederajat</option>
+            <option value="D1">D1 / D2</option>
+            <option value="D3">D3</option>
+            <option value="S1">S1 / D4</option>
+            <option value="S2">S2</option>
+            <option value="S3">S3</option>
+          </Select>
+        </div>
+      )
+    }
     if (field.key === 'birthDate') {
       return (
         <div key={field.key} className="space-y-2">
@@ -362,342 +382,283 @@ export default function CheckoutFormPage() {
     )
   }
 
-  if (success) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <div className="w-full max-w-[420px] text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <div className="flex flex-col items-center mb-8">
-            <img src="/logo2.png" alt="mendunia.id" className="h-8 w-auto mb-1 opacity-90" />
-          </div>
-          <div className="h-16 w-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-5">
-            <CheckCircle className="h-8 w-8 text-emerald-600" />
-          </div>
-          <h1 className="text-xl font-bold text-foreground mb-2">
-            {isAffiliate ? 'Pendaftaran Affiliate Berhasil!' : 'Pendaftaran Berhasil!'}
-          </h1>
-          <p className="text-sm text-muted-foreground mb-6">
-            {isAffiliate
-              ? 'Akun affiliate Anda telah berhasil dibuat. Silakan cek email untuk informasi kode affiliate Anda.'
-              : 'Data Anda telah berhasil dikirim. Silakan cek email untuk informasi lebih lanjut.'
-            }
-          </p>
-          <Link to="/login">
-            <Button className="w-full h-11 rounded-md font-medium text-sm shadow-none hover:opacity-90 transition-opacity">Masuk ke Akun</Button>
-          </Link>
-        </div>
-      </div>
-    )
-  }
+
+
+  const s = templateStyles[template]
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-background selection:bg-primary/20 p-4">
-      <div className="w-full max-w-[420px] animate-in fade-in slide-in-from-bottom-4 duration-700">
-        {/* Logo */}
-        <div className="flex flex-col items-center mb-6">
-          <Link to="/login">
-            <img src="/logo2.png" alt="mendunia.id" className="h-8 w-auto mb-1 opacity-90" />
-          </Link>
-          <p className="text-sm text-muted-foreground mt-2">{setting.title}</p>
-        </div>
-
-        {/* Referral Badge */}
-        {refCode && (
-          <div className="mb-5 px-3 py-2 bg-primary/5 border border-primary/20 rounded-md text-xs text-primary text-center font-medium">
-            Kode Referral: <strong>{refCode}</strong>
-          </div>
+    <BaseLayout
+      template={template}
+      step={step}
+      steps={steps}
+      title={setting.title}
+      refCode={refCode}
+      success={success}
+      successTitle={isAffiliate ? 'Pendaftaran Affiliate Berhasil!' : 'Pendaftaran Berhasil!'}
+      successDesc={isAffiliate ? 'Akun affiliate Anda telah berhasil dibuat. Silakan cek email untuk informasi kode affiliate Anda.' : 'Data Anda telah berhasil dikirim. Silakan cek email untuk informasi lebih lanjut.'}
+      successBtn="Masuk ke Akun"
+      successLink="/login"
+    >
+      <div className="space-y-5">
+        {/* Step 1: Account */}
+        {step === 1 && (
+          <>
+            <div className="space-y-2">
+              <Label className={s.labelClass}>Alamat Email</Label>
+              <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="nama@email.com" className={s.inputClass} />
+            </div>
+            <div className="space-y-2">
+              <Label className={s.labelClass}>Password</Label>
+              <Input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Minimal 8 karakter" className={`${s.inputClass} font-mono`} />
+            </div>
+            <Button onClick={nextStep} className={`w-full h-11 rounded-md font-medium text-sm shadow-none hover:opacity-90 transition-opacity ${s.buttonPrimary}`}>
+              Lanjut <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+          </>
         )}
 
-        {/* Step Indicator */}
-        <div className="flex items-center justify-center gap-1 mb-6">
-          {steps.map((s, i) => (
-            <div key={s.id} className="flex items-center">
-              <div className="flex flex-col items-center gap-1">
-                <div className={`h-7 w-7 rounded-full flex items-center justify-center text-[10px] font-bold transition-all ${
-                  step > s.id ? 'bg-emerald-500 text-white' : step === s.id ? 'bg-primary text-white' : 'bg-muted/40 text-muted-foreground'
-                }`}>
-                  {step > s.id ? <CheckCircle className="h-3.5 w-3.5" /> : s.id}
-                </div>
-                <span className={`text-[9px] font-semibold hidden sm:block ${step === s.id ? 'text-foreground' : 'text-muted-foreground'}`}>
-                  {s.label}
-                </span>
-              </div>
-              {i < steps.length - 1 && (
-                <div className={`h-[2px] w-6 sm:w-10 mx-1 sm:mx-1.5 transition-colors ${step > s.id ? 'bg-emerald-500' : 'bg-muted/40'}`} />
-              )}
-            </div>
-          ))}
-        </div>
-
-        {/* Step Content */}
-        <div className="space-y-5">
-          {/* Step 1: Account */}
-          {step === 1 && (
-            <>
+        {/* Step 2: Program Selection (Register) */}
+        {step === 2 && !isAffiliate && (
+          <>
+            {programs.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-6">Tidak ada program tersedia</p>
+            ) : (
               <div className="space-y-2">
-                <Label className="text-sm font-medium text-foreground">Alamat Email</Label>
-                <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="nama@email.com" className="h-11 rounded-md bg-transparent border-border/40 shadow-none focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary/20 transition-all text-sm px-3" />
+                <Label className={s.labelClass}>Pilih Program</Label>
+                {programs.map((p: Program) => (
+                  <label key={p.id} className={`block p-3 rounded-md border cursor-pointer transition-all ${
+                    selectedProgramId === p.id ? 'border-primary bg-primary/5' : 'border-border/40 hover:border-border'
+                  }`}>
+                    <div className="flex items-center gap-3">
+                      <input type="radio" name="program" checked={selectedProgramId === p.id} onChange={() => setSelectedProgramId(p.id)} className="h-4 w-4 text-primary" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{p.name}</p>
+                        <p className="text-xs text-muted-foreground">{p.country || '-'}</p>
+                      </div>
+                      <p className="text-sm font-bold text-foreground">{formatCurrency(Number(p.fee))}</p>
+                    </div>
+                  </label>
+                ))}
               </div>
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-foreground">Password</Label>
-                <Input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Minimal 8 karakter" className="h-11 rounded-md bg-transparent border-border/40 shadow-none focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary/20 transition-all text-sm px-3 font-mono" />
-              </div>
-              <Button onClick={nextStep} className="w-full h-11 rounded-md font-medium text-sm shadow-none hover:opacity-90 transition-opacity">
+            )}
+            <div className="flex gap-2 pt-1">
+              <Button variant="outline" onClick={() => setStep(1)} className={`flex-1 h-11 rounded-md font-medium text-sm shadow-none ${s.buttonOutline}`}>Kembali</Button>
+              <Button onClick={nextStep} className={`flex-1 h-11 rounded-md font-medium text-sm shadow-none hover:opacity-90 transition-opacity ${s.buttonPrimary}`} disabled={!selectedProgramId}>
                 Lanjut <ChevronRight className="h-4 w-4 ml-1" />
               </Button>
-            </>
-          )}
+            </div>
+          </>
+        )}
 
-          {/* Step 2: Program Selection (Register) */}
-          {step === 2 && !isAffiliate && (
-            <>
-              {programs.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-6">Tidak ada program tersedia</p>
-              ) : (
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-foreground">Pilih Program</Label>
-                  {programs.map((p: Program) => (
-                    <label key={p.id} className={`block p-3 rounded-md border cursor-pointer transition-all ${
-                      selectedProgramId === p.id ? 'border-primary bg-primary/5' : 'border-border/40 hover:border-border'
-                    }`}>
-                      <div className="flex items-center gap-3">
-                        <input type="radio" name="program" checked={selectedProgramId === p.id} onChange={() => setSelectedProgramId(p.id)} className="h-4 w-4 text-primary" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{p.name}</p>
-                          <p className="text-xs text-muted-foreground">{p.country || '-'}</p>
-                        </div>
-                        <p className="text-sm font-bold text-foreground">{formatCurrency(Number(p.fee))}</p>
-                      </div>
-                    </label>
-                  ))}
+        {/* Step 2: Data Diri Part 1 (Affiliate) */}
+        {step === 2 && isAffiliate && (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {fields.slice(0, Math.ceil(fields.length / 2)).map(renderField)}
+            </div>
+            <div className="flex gap-2 pt-1">
+              <Button variant="outline" onClick={() => setStep(1)} className={`flex-1 h-11 rounded-md font-medium text-sm shadow-none ${s.buttonOutline}`}>Kembali</Button>
+              <Button onClick={nextStep} className={`flex-1 h-11 rounded-md font-medium text-sm shadow-none hover:opacity-90 transition-opacity ${s.buttonPrimary}`}>
+                Lanjut <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
+          </>
+        )}
+
+        {/* Step 3: Data Diri Part 2 (Affiliate) */}
+        {step === 3 && isAffiliate && (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {fields.slice(Math.ceil(fields.length / 2)).map(renderField)}
+            </div>
+            <div className="flex gap-2 pt-1">
+              <Button variant="outline" onClick={() => setStep(2)} className={`flex-1 h-11 rounded-md font-medium text-sm shadow-none ${s.buttonOutline}`}>Kembali</Button>
+              <Button onClick={nextStep} className={`flex-1 h-11 rounded-md font-medium text-sm shadow-none hover:opacity-90 transition-opacity ${s.buttonPrimary}`}>
+                Lanjut <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
+          </>
+        )}
+
+        {/* Step 3: Data Diri (Register) */}
+        {step === 3 && !isAffiliate && hasFields && (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {fields.map(renderField)}
+            </div>
+            <div className="flex gap-2 pt-1">
+              <Button variant="outline" onClick={() => setStep(2)} className={`flex-1 h-11 rounded-md font-medium text-sm shadow-none ${s.buttonOutline}`}>Kembali</Button>
+              <Button onClick={nextStep} className={`flex-1 h-11 rounded-md font-medium text-sm shadow-none hover:opacity-90 transition-opacity ${s.buttonPrimary}`}>
+                Lanjut <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
+          </>
+        )}
+
+        {/* Confirmation + Payment (Register) */}
+        {step === registerStepCount && !isAffiliate && (
+          <>
+            {/* Price Summary */}
+            {programPrice !== null && (
+              <div className="bg-muted/20 rounded-md border border-border/40 p-3 space-y-1.5">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Program</span>
+                  <span className="font-medium text-foreground">{selectedProgram?.name || '-'}</span>
                 </div>
-              )}
-              <div className="flex gap-2 pt-1">
-                <Button variant="outline" onClick={() => setStep(1)} className="flex-1 h-11 rounded-md font-medium text-sm shadow-none">Kembali</Button>
-                <Button onClick={nextStep} className="flex-1 h-11 rounded-md font-medium text-sm shadow-none hover:opacity-90 transition-opacity" disabled={!selectedProgramId}>
-                  Lanjut <ChevronRight className="h-4 w-4 ml-1" />
-                </Button>
-              </div>
-            </>
-          )}
-
-          {/* Step 2: Data Diri Part 1 (Affiliate) */}
-          {step === 2 && isAffiliate && (
-            <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {fields.slice(0, Math.ceil(fields.length / 2)).map(renderField)}
-              </div>
-              <div className="flex gap-2 pt-1">
-                <Button variant="outline" onClick={() => setStep(1)} className="flex-1 h-11 rounded-md font-medium text-sm shadow-none">Kembali</Button>
-                <Button onClick={nextStep} className="flex-1 h-11 rounded-md font-medium text-sm shadow-none hover:opacity-90 transition-opacity">
-                  Lanjut <ChevronRight className="h-4 w-4 ml-1" />
-                </Button>
-              </div>
-            </>
-          )}
-
-          {/* Step 3: Data Diri Part 2 (Affiliate) */}
-          {step === 3 && isAffiliate && (
-            <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {fields.slice(Math.ceil(fields.length / 2)).map(renderField)}
-              </div>
-              <div className="flex gap-2 pt-1">
-                <Button variant="outline" onClick={() => setStep(2)} className="flex-1 h-11 rounded-md font-medium text-sm shadow-none">Kembali</Button>
-                <Button onClick={nextStep} className="flex-1 h-11 rounded-md font-medium text-sm shadow-none hover:opacity-90 transition-opacity">
-                  Lanjut <ChevronRight className="h-4 w-4 ml-1" />
-                </Button>
-              </div>
-            </>
-          )}
-
-          {/* Step 3: Data Diri (Register) */}
-          {step === 3 && !isAffiliate && hasFields && (
-            <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {fields.map(renderField)}
-              </div>
-              <div className="flex gap-2 pt-1">
-                <Button variant="outline" onClick={() => setStep(2)} className="flex-1 h-11 rounded-md font-medium text-sm shadow-none">Kembali</Button>
-                <Button onClick={nextStep} className="flex-1 h-11 rounded-md font-medium text-sm shadow-none hover:opacity-90 transition-opacity">
-                  Lanjut <ChevronRight className="h-4 w-4 ml-1" />
-                </Button>
-              </div>
-            </>
-          )}
-
-          {/* Confirmation + Payment (Register) */}
-          {step === registerStepCount && !isAffiliate && (
-            <>
-              {/* Price Summary */}
-              {programPrice !== null && (
-                <div className="bg-muted/20 rounded-md border border-border/40 p-3 space-y-1.5">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Program</span>
-                    <span className="font-medium text-foreground">{selectedProgram?.name || '-'}</span>
-                  </div>
-                  {couponResult ? (
-                    <>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground line-through">{formatCurrency(programPrice)}</span>
-                      </div>
-                      <div className="flex justify-between text-sm text-emerald-600">
-                        <span>Diskon</span>
-                        <span>-{formatCurrency(couponResult.discountAmount)}</span>
-                      </div>
-                      <div className="flex justify-between text-sm border-t border-border/40 pt-1.5">
-                        <span className="font-semibold text-foreground">Total</span>
-                        <span className="font-bold text-foreground">{formatCurrency(couponResult.finalAmount)}</span>
-                      </div>
-                    </>
-                  ) : (
+                {couponResult ? (
+                  <>
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Biaya Program</span>
-                      <span className="font-bold text-foreground">{formatCurrency(programPrice)}</span>
+                      <span className="text-muted-foreground line-through">{formatCurrency(programPrice)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm text-emerald-600">
+                      <span>Diskon</span>
+                      <span>-{formatCurrency(couponResult.discountAmount)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm border-t border-border/40 pt-1.5">
+                      <span className="font-semibold text-foreground">Total</span>
+                      <span className="font-bold text-foreground">{formatCurrency(couponResult.finalAmount)}</span>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Biaya Program</span>
+                    <span className="font-bold text-foreground">{formatCurrency(programPrice)}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Coupon */}
+            <div className="space-y-2">
+              <Label className={s.labelClass}>Kode Kupon</Label>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Masukkan kode kupon"
+                  className={`${s.inputClass} flex-1`}
+                  value={couponCode}
+                  onChange={e => { setCouponCode(e.target.value.toUpperCase()); setCouponError(null) }}
+                  disabled={!!couponResult}
+                />
+                {!couponResult ? (
+                  <Button variant="outline" className={`h-11 rounded-md font-medium text-sm shadow-none ${s.buttonOutline}`} onClick={handleApplyCoupon} disabled={couponLoading || !couponCode.trim()}>
+                    {couponLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Pakai'}
+                  </Button>
+                ) : (
+                  <Button variant="outline" className={`h-11 rounded-md font-medium text-sm shadow-none border-emerald-300 text-emerald-600 ${s.buttonOutline}`} onClick={() => { setCouponCode(''); setCouponResult(null) }}>
+                    Hapus
+                  </Button>
+                )}
+              </div>
+              {couponError && <p className="text-xs text-rose-500 font-medium">{couponError}</p>}
+              {couponResult && <p className="text-xs text-emerald-600 font-medium">Kupon berhasil digunakan!</p>}
+            </div>
+
+            {/* Payment Upload */}
+            <div className="space-y-2">
+              <Label className={s.labelClass}>Upload Bukti Transfer</Label>
+              <input ref={fileRef} type="file" accept="image/*" onChange={handleFileSelect} hidden />
+              {!proofPreview ? (
+                <div onClick={() => fileRef.current?.click()} className="w-full h-32 rounded-md border-2 border-dashed border-border/40 hover:border-primary/40 bg-muted/10 flex flex-col items-center justify-center cursor-pointer transition-colors">
+                  <ImageIcon className="h-6 w-6 text-muted-foreground/40 mb-1" />
+                  <p className="text-xs text-muted-foreground">Klik untuk upload</p>
+                </div>
+              ) : (
+                <div className="relative w-full rounded-md overflow-hidden border border-border/40 bg-muted/10">
+                  <img src={proofPreview} alt="Preview" className="w-full h-32 object-contain" />
+                  <button type="button" onClick={removeFile} className="absolute top-2 right-2 h-6 w-6 bg-black/60 hover:bg-black/80 text-white rounded-full flex items-center justify-center">
+                    <X className="h-3 w-3" />
+                  </button>
+                  {ocrLoading && (
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                      <Loader2 className="h-8 w-8 animate-spin text-white" />
                     </div>
                   )}
                 </div>
               )}
-
-              {/* Coupon */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-foreground">Kode Kupon</Label>
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Masukkan kode kupon"
-                    className="h-11 rounded-md bg-transparent border-border/40 shadow-none focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary/20 transition-all text-sm px-3 flex-1"
-                    value={couponCode}
-                    onChange={e => { setCouponCode(e.target.value.toUpperCase()); setCouponError(null) }}
-                    disabled={!!couponResult}
-                  />
-                  {!couponResult ? (
-                    <Button variant="outline" className="h-11 rounded-md font-medium text-sm shadow-none" onClick={handleApplyCoupon} disabled={couponLoading || !couponCode.trim()}>
-                      {couponLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Pakai'}
-                    </Button>
-                  ) : (
-                    <Button variant="outline" className="h-11 rounded-md font-medium text-sm shadow-none border-emerald-300 text-emerald-600" onClick={() => { setCouponCode(''); setCouponResult(null) }}>
-                      Hapus
-                    </Button>
-                  )}
-                </div>
-                {couponError && <p className="text-xs text-rose-500 font-medium">{couponError}</p>}
-                {couponResult && <p className="text-xs text-emerald-600 font-medium">Kupon berhasil digunakan!</p>}
-              </div>
-
-              {/* Payment Upload */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-foreground">Upload Bukti Transfer</Label>
-                <input ref={fileRef} type="file" accept="image/*" onChange={handleFileSelect} hidden />
-                {!proofPreview ? (
-                  <div onClick={() => fileRef.current?.click()} className="w-full h-32 rounded-md border-2 border-dashed border-border/40 hover:border-primary/40 bg-muted/10 flex flex-col items-center justify-center cursor-pointer transition-colors">
-                    <ImageIcon className="h-6 w-6 text-muted-foreground/40 mb-1" />
-                    <p className="text-xs text-muted-foreground">Klik untuk upload</p>
+              {ocrResult && (
+                <div className={`p-3 rounded-md border ${ocrResult.isValid ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'}`}>
+                  <div className="flex items-center gap-2 mb-1">
+                    {ocrResult.isValid ? (
+                      <CheckCircle className="h-4 w-4 text-emerald-600" />
+                    ) : (
+                      <AlertCircle className="h-4 w-4 text-red-500" />
+                    )}
+                    <span className={`text-xs font-bold ${ocrResult.isValid ? 'text-emerald-700' : 'text-red-600'}`}>
+                      {ocrResult.isValid ? 'Dokumen Valid' : 'Dokumen Tidak Valid'}
+                    </span>
                   </div>
-                ) : (
-                  <div className="relative w-full rounded-md overflow-hidden border border-border/40 bg-muted/10">
-                    <img src={proofPreview} alt="Preview" className="w-full h-32 object-contain" />
-                    <button type="button" onClick={removeFile} className="absolute top-2 right-2 h-6 w-6 bg-black/60 hover:bg-black/80 text-white rounded-full flex items-center justify-center">
-                      <X className="h-3 w-3" />
-                    </button>
-                    {ocrLoading && (
-                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                        <Loader2 className="h-8 w-8 animate-spin text-white" />
-                      </div>
+                  <div className="text-[10px] space-y-0.5">
+                    {ocrResult.senderName || ocrResult.bankTo ? (
+                      <>
+                        <p className="text-muted-foreground">Tertangkap: {ocrResult.senderName || '-'} → {ocrResult.bankTo || '-'}</p>
+                        <p className="text-muted-foreground">Nominal: <strong>{formatCurrency(ocrResult.amount ?? 0)}</strong></p>
+                      </>
+                    ) : null}
+                    {ocrResult.rawJson?.error && (
+                      <p className="text-red-500 font-medium mt-1">{ocrResult.rawJson.error}</p>
+                    )}
+                    {!ocrResult.isValid && ocrResult.confidence < 80 && !ocrResult.rawJson?.error && (
+                      <p className="text-red-500 font-medium mt-1">Confidence rendah ({ocrResult.confidence}%), upload ulang jika perlu</p>
                     )}
                   </div>
-                )}
-                {ocrResult && (
-                  <div className={`p-3 rounded-md border ${ocrResult.isValid ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'}`}>
-                    <div className="flex items-center gap-2 mb-1">
-                      {ocrResult.isValid ? (
-                        <CheckCircle className="h-4 w-4 text-emerald-600" />
-                      ) : (
-                        <AlertCircle className="h-4 w-4 text-red-500" />
-                      )}
-                      <span className={`text-xs font-bold ${ocrResult.isValid ? 'text-emerald-700' : 'text-red-600'}`}>
-                        {ocrResult.isValid ? 'Dokumen Valid' : 'Dokumen Tidak Valid'}
-                      </span>
-                    </div>
-                    <div className="text-[10px] space-y-0.5">
-                      {ocrResult.senderName || ocrResult.bankTo ? (
-                        <>
-                          <p className="text-muted-foreground">Tertangkap: {ocrResult.senderName || '-'} → {ocrResult.bankTo || '-'}</p>
-                          <p className="text-muted-foreground">Nominal: <strong>{formatCurrency(ocrResult.amount ?? 0)}</strong></p>
-                        </>
-                      ) : null}
-                      {ocrResult.rawJson?.error && (
-                        <p className="text-red-500 font-medium mt-1">{ocrResult.rawJson.error}</p>
-                      )}
-                      {!ocrResult.isValid && ocrResult.confidence < 80 && !ocrResult.rawJson?.error && (
-                        <p className="text-red-500 font-medium mt-1">Confidence rendah ({ocrResult.confidence}%), upload ulang jika perlu</p>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Summary */}
-              <div className="bg-muted/20 rounded-md border border-border/40 p-3 space-y-1.5">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Ringkasan Data</p>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Email</span>
-                  <span className="font-medium text-foreground truncate max-w-[200px]">{email}</span>
                 </div>
-                {fields.slice(0, 3).map(f => fieldValues[f.key] && (
-                  <div key={f.key} className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">{f.label}</span>
-                    <span className="font-medium text-foreground truncate max-w-[200px]">{fieldValues[f.key]}</span>
-                  </div>
-                ))}
-                {fields.length > 3 && <p className="text-xs text-muted-foreground">...dan {fields.length - 3} field lainnya</p>}
+              )}
+            </div>
+
+            {/* Summary */}
+            <div className={`${s.summaryCardClass} p-3 space-y-1.5`}>
+              <p className={`text-xs font-semibold uppercase tracking-wider ${s.summaryTitleClass}`}>Ringkasan Data</p>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Email</span>
+                <span className="font-medium text-foreground truncate max-w-[200px]">{email}</span>
               </div>
-
-              <Button onClick={handleSubmit} disabled={submitting} className="w-full h-11 rounded-md font-medium text-sm shadow-none hover:opacity-90 transition-opacity">
-                {submitting ? <><Loader2 className="h-4 w-4 animate-spin mr-1.5" /> Mendaftarkan...</> : 'Daftar Sekarang'}
-              </Button>
-
-              <Button variant="ghost" onClick={() => setStep(registerStepCount - 1)} className="w-full h-11 rounded-md font-medium text-sm text-muted-foreground shadow-none">
-                Kembali
-              </Button>
-            </>
-          )}
-
-          {/* Step 3: Confirmation (Affiliate) */}
-          {step === 3 && isAffiliate && (
-            <>
-              {/* Summary */}
-              <div className="bg-muted/20 rounded-md border border-border/40 p-3 space-y-1.5">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Ringkasan Data</p>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Email</span>
-                  <span className="font-medium text-foreground truncate max-w-[200px]">{email}</span>
+              {fields.slice(0, 3).map(f => fieldValues[f.key] && (
+                <div key={f.key} className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">{f.label}</span>
+                  <span className="font-medium text-foreground truncate max-w-[200px]">{fieldValues[f.key]}</span>
                 </div>
-                {fields.slice(0, 3).map(f => fieldValues[f.key] && (
-                  <div key={f.key} className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">{f.label}</span>
-                    <span className="font-medium text-foreground truncate max-w-[200px]">{fieldValues[f.key]}</span>
-                  </div>
-                ))}
+              ))}
+              {fields.length > 3 && <p className="text-xs text-muted-foreground">...dan {fields.length - 3} field lainnya</p>}
+            </div>
+
+            <Button onClick={handleSubmit} disabled={submitting} className={`w-full h-11 rounded-md font-medium text-sm shadow-none hover:opacity-90 transition-opacity ${s.buttonPrimary}`}>
+              {submitting ? <><Loader2 className="h-4 w-4 animate-spin mr-1.5" /> Mendaftarkan...</> : 'Daftar Sekarang'}
+            </Button>
+
+            <Button variant="ghost" onClick={() => setStep(registerStepCount - 1)} className={`w-full h-11 rounded-md font-medium text-sm text-muted-foreground shadow-none ${s.buttonGhost}`}>
+              Kembali
+            </Button>
+          </>
+        )}
+
+        {/* Step 3: Confirmation (Affiliate) */}
+        {step === 3 && isAffiliate && (
+          <>
+            {/* Summary */}
+            <div className={`${s.summaryCardClass} p-3 space-y-1.5`}>
+              <p className={`text-xs font-semibold uppercase tracking-wider ${s.summaryTitleClass}`}>Ringkasan Data</p>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Email</span>
+                <span className="font-medium text-foreground truncate max-w-[200px]">{email}</span>
               </div>
+              {fields.slice(0, 3).map(f => fieldValues[f.key] && (
+                <div key={f.key} className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">{f.label}</span>
+                  <span className="font-medium text-foreground truncate max-w-[200px]">{fieldValues[f.key]}</span>
+                </div>
+              ))}
+            </div>
 
-              <Button onClick={handleSubmit} disabled={submitting} className="w-full h-11 rounded-md font-medium text-sm shadow-none hover:opacity-90 transition-opacity">
-                {submitting ? <><Loader2 className="h-4 w-4 animate-spin mr-1.5" /> Mendaftarkan...</> : 'Daftar Affiliate'}
-              </Button>
+            <Button onClick={handleSubmit} disabled={submitting} className={`w-full h-11 rounded-md font-medium text-sm shadow-none hover:opacity-90 transition-opacity ${s.buttonPrimary}`}>
+              {submitting ? <><Loader2 className="h-4 w-4 animate-spin mr-1.5" /> Mendaftarkan...</> : 'Daftar Affiliate'}
+            </Button>
 
-              <Button variant="ghost" onClick={() => setStep(2)} className="w-full h-11 rounded-md font-medium text-sm text-muted-foreground shadow-none">
-                Kembali
-              </Button>
-            </>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="mt-6 text-center">
-          <p className="text-xs text-muted-foreground">
-            Sudah memiliki akun?{' '}
-            <Link to="/login" className="text-primary font-medium hover:underline">Masuk di sini</Link>
-          </p>
-        </div>
+            <Button variant="ghost" onClick={() => setStep(2)} className={`w-full h-11 rounded-md font-medium text-sm text-muted-foreground shadow-none ${s.buttonGhost}`}>
+              Kembali
+            </Button>
+          </>
+        )}
       </div>
-    </div>
+    </BaseLayout>
   )
 }

@@ -21,32 +21,18 @@ async function getWaConfig(): Promise<WaConfig> {
   };
 }
 
-async function apiGet(path: string, apiKey: string, timeoutMs: number = 5000): Promise<any> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const res = await fetch(path, {
-      method: 'GET',
-      headers: { 'x-api-key': apiKey, 'Content-Type': 'application/json' },
-      signal: controller.signal,
-    });
-    return { ok: res.ok, data: await res.json() as any };
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
 async function apiPost(path: string, apiKey: string, body: any = {}, timeoutMs: number = 10000): Promise<any> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const res = await fetch(path, {
       method: 'POST',
-      headers: { 'x-api-key': apiKey, 'Content-Type': 'application/json' },
+      headers: { 'Authorization': apiKey, 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
       signal: controller.signal,
     });
-    return { ok: res.ok, data: await res.json() as any };
+    const data = await res.json() as any;
+    return { ok: res.ok, data };
   } finally {
     clearTimeout(timer);
   }
@@ -57,42 +43,15 @@ export async function getSenderStatus(): Promise<{ connected: boolean; number: s
   if (!config.apiUrl || !config.apiKey) {
     return { connected: false, number: null };
   }
-  try {
-    const { data } = await apiGet(`${config.apiUrl}/status`, config.apiKey);
-    return { connected: data?.connected || false, number: data?.number || null };
-  } catch {
-    return { connected: false, number: null };
-  }
+  return { connected: true, number: config.senderNumber || null };
 }
 
 export async function startSender(): Promise<{ success: boolean; message: string }> {
-  const config = await getWaConfig();
-  if (!config.apiUrl || !config.apiKey) {
-    return { success: false, message: 'API URL dan API Key WhatsApp belum dikonfigurasi' };
-  }
-  try {
-    const { data } = await apiPost(`${config.apiUrl}/start`, config.apiKey);
-    logger.info('WhatsApp sender started successfully');
-    return { success: true, message: data?.message || 'Sender berhasil dijalankan' };
-  } catch (error: any) {
-    logger.error('Failed to start WhatsApp sender:', error?.message);
-    return { success: false, message: error?.message || 'Gagal menjalankan sender' };
-  }
+  return { success: true, message: 'Cloud API selalu tersedia, tidak perlu start/stop' };
 }
 
 export async function stopSender(): Promise<{ success: boolean; message: string }> {
-  const config = await getWaConfig();
-  if (!config.apiUrl || !config.apiKey) {
-    return { success: false, message: 'API URL dan API Key WhatsApp belum dikonfigurasi' };
-  }
-  try {
-    const { data } = await apiPost(`${config.apiUrl}/stop`, config.apiKey);
-    logger.info('WhatsApp sender stopped successfully');
-    return { success: true, message: data?.message || 'Sender berhasil dihentikan' };
-  } catch (error: any) {
-    logger.error('Failed to stop WhatsApp sender:', error?.message);
-    return { success: false, message: error?.message || 'Gagal menghentikan sender' };
-  }
+  return { success: true, message: 'Cloud API selalu tersedia, tidak perlu start/stop' };
 }
 
 export async function sendWaMessage(to: string, message: string): Promise<boolean> {
@@ -103,14 +62,45 @@ export async function sendWaMessage(to: string, message: string): Promise<boolea
   }
   try {
     await apiPost(`${config.apiUrl}/send`, config.apiKey, {
+      messageType: 'text',
       to,
-      message,
-      sender: config.senderNumber || undefined,
+      body: message,
     });
     logger.info(`WhatsApp message sent to ${to}`);
     return true;
   } catch (error) {
     logger.error('Failed to send WhatsApp message:', error);
+    return false;
+  }
+}
+
+export async function sendWaOtp(to: string, otp: string): Promise<boolean> {
+  const config = await getWaConfig();
+  if (!config.apiUrl || !config.apiKey) {
+    logger.warn('WhatsApp not configured, skipping OTP to', to);
+    return false;
+  }
+  const message = `*Kode OTP Login Mendunia.ID*
+
+Kode OTP Anda: *${otp}*
+
+Kode berlaku selama 5 menit. Jangan bagikan kode ini kepada siapa pun.
+
+Abaikan pesan ini jika Anda tidak merasa melakukan login.`;
+  try {
+    const { data } = await apiPost(`${config.apiUrl}/send`, config.apiKey, {
+      messageType: 'text',
+      to,
+      body: message,
+    });
+    if (data?.success) {
+      logger.info(`OTP sent successfully to ${to}`);
+      return true;
+    }
+    logger.error('StarSender send failed:', data);
+    return false;
+  } catch (error) {
+    logger.error('StarSender error:', error);
     return false;
   }
 }

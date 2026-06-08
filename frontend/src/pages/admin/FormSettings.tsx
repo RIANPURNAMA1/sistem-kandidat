@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, Input, Label, Select } from '@/components/ui/index'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/index'
-import { Loader2, Plus, Copy, CheckCircle, Trash2, ExternalLink, Users, Edit3, Eye, Search, UserCheck } from 'lucide-react'
+import { Loader2, Plus, Copy, CheckCircle, Trash2, ExternalLink, Users, Edit3, Eye, Search, UserCheck, ScanLine } from 'lucide-react'
 import api from '@/services/api'
 import { toast } from '@/components/ui/toaster'
 
@@ -18,6 +18,7 @@ const TEMPLATES = [
   { value: 'default', label: 'Default' },
   { value: 'modern', label: 'Modern' },
   { value: 'classic', label: 'Klasik' },
+  { value: 'minimal', label: 'Minimal' },
 ]
 
 const DEFAULT_REGISTER_FIELDS: Field[] = [
@@ -76,6 +77,7 @@ export default function FormSettings({ onBack }: { onBack?: () => void }) {
   const [title, setTitle] = useState('')
   const [programIds, setProgramIds] = useState<string[]>([])
   const [template, setTemplate] = useState('default')
+  const [ocrEnabled, setOcrEnabled] = useState(true)
   const [fields, setFields] = useState<Field[]>(DEFAULT_REGISTER_FIELDS)
 
   const { data: settingsList } = useQuery({
@@ -107,7 +109,7 @@ export default function FormSettings({ onBack }: { onBack?: () => void }) {
   }, [settingsList, searchQuery])
 
   const saveMutation = useMutation({
-    mutationFn: async (values: { id?: string; formType: string; title: string; programIds: string[]; template: string; fields: Field[] }) => {
+    mutationFn: async (values: { id?: string; formType: string; title: string; programIds: string[]; template: string; ocrEnabled: boolean; fields: Field[] }) => {
       if (values.id) {
         const { data } = await api.put(`/checkout/${values.id}`, values)
         return data.data
@@ -143,6 +145,7 @@ export default function FormSettings({ onBack }: { onBack?: () => void }) {
     setTitle('')
     setProgramIds([])
     setTemplate('default')
+    setOcrEnabled(true)
     setFields(DEFAULT_REGISTER_FIELDS)
     setEditingId(null)
     setSavedSlug(null)
@@ -154,6 +157,7 @@ export default function FormSettings({ onBack }: { onBack?: () => void }) {
     setTitle(setting.title)
     setProgramIds(setting.programIds || [])
     setTemplate(setting.template || 'default')
+    setOcrEnabled(setting.ocrEnabled !== false)
     setFields(setting.fields || (setting.formType === 'AFFILIATE' ? DEFAULT_AFFILIATE_FIELDS : DEFAULT_REGISTER_FIELDS))
     setEditingId(setting.id)
     setSavedSlug(setting.slug)
@@ -183,12 +187,14 @@ export default function FormSettings({ onBack }: { onBack?: () => void }) {
       toast({ title: 'Pilih minimal satu program', variant: 'destructive' })
       return
     }
-    saveMutation.mutate({ id: editingId || undefined, formType, title, programIds, template, fields })
+    saveMutation.mutate({ id: editingId || undefined, formType, title, programIds, template, ocrEnabled, fields })
   }
 
-  const copyLink = (slug: string) => {
-    const url = `${BASE_URL}/checkout/${slug}`
-    navigator.clipboard.writeText(url)
+  const getFormUrl = (slug: string, isAffiliate: boolean) =>
+    isAffiliate ? `${BASE_URL}/register/affiliate` : `${BASE_URL}/checkout/${slug}`
+
+  const copyLink = (slug: string, isAffiliate: boolean) => {
+    navigator.clipboard.writeText(getFormUrl(slug, isAffiliate))
     toast({ title: 'Link berhasil disalin!' })
   }
 
@@ -274,12 +280,12 @@ export default function FormSettings({ onBack }: { onBack?: () => void }) {
                         </p>
                         <div className="flex items-center gap-2 mt-2.5">
                           <code className="text-[10px] bg-slate-100 px-2 py-1 rounded font-mono text-slate-500 truncate max-w-[300px]">
-                            {BASE_URL}/checkout/{setting.slug}
+                            {setting.formType === 'AFFILIATE' ? `${BASE_URL}/register/affiliate` : `${BASE_URL}/checkout/${setting.slug}`}
                           </code>
-                          <button onClick={() => copyLink(setting.slug)} className="text-slate-400 hover:text-[#009ce1] transition-colors p-1" title="Salin link">
+                          <button onClick={() => copyLink(setting.slug, setting.formType === 'AFFILIATE')} className="text-slate-400 hover:text-[#009ce1] transition-colors p-1" title="Salin link">
                             <Copy className="h-3.5 w-3.5" />
                           </button>
-                          <button onClick={() => window.open(`/checkout/${setting.slug}`, '_blank')} className="text-slate-400 hover:text-[#009ce1] transition-colors p-1" title="Buka form">
+                          <button onClick={() => window.open(setting.formType === 'AFFILIATE' ? '/register/affiliate' : `/checkout/${setting.slug}`, '_blank')} className="text-slate-400 hover:text-[#009ce1] transition-colors p-1" title="Buka form">
                             <Eye className="h-3.5 w-3.5" />
                           </button>
                         </div>
@@ -353,6 +359,31 @@ export default function FormSettings({ onBack }: { onBack?: () => void }) {
                   ))}
                 </Select>
               </div>
+              {formType === 'REGISTER' && (
+                <div className="space-y-1.5 pt-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <ScanLine className="h-4 w-4 text-slate-500" />
+                      <Label className="text-xs cursor-pointer">OCR / AI Analysis</Label>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setOcrEnabled(!ocrEnabled)}
+                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${ocrEnabled ? 'bg-[#009ce1]' : 'bg-slate-300'}`}
+                    >
+                      <span
+                        className="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform"
+                        style={{ transform: ocrEnabled ? 'translateX(18px)' : 'translateX(2px)' }}
+                      />
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-slate-400 leading-relaxed">
+                    {ocrEnabled
+                      ? 'Bukti pembayaran akan discan AI untuk ekstraksi data secara otomatis'
+                      : 'Bukti pembayaran hanya diupload tanpa scan AI'}
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -479,12 +510,12 @@ export default function FormSettings({ onBack }: { onBack?: () => void }) {
                     <p className="text-xs text-emerald-600 mt-0.5">Link form pendaftaran:</p>
                     <div className="flex items-center gap-2 mt-2">
                       <code className="text-[10px] bg-white px-2.5 py-1.5 rounded-lg border border-emerald-200 truncate flex-1 font-mono text-emerald-700">
-                        {BASE_URL}/checkout/{savedSlug}
+                        {formType === 'AFFILIATE' ? `${BASE_URL}/register/affiliate` : `${BASE_URL}/checkout/${savedSlug}`}
                       </code>
-                      <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => copyLink(savedSlug)}>
+                      <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => copyLink(savedSlug!, formType === 'AFFILIATE')}>
                         <Copy className="h-3.5 w-3.5 mr-1" /> Salin
                       </Button>
-                      <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => window.open(`/checkout/${savedSlug}`, '_blank')}>
+                      <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => window.open(formType === 'AFFILIATE' ? '/register/affiliate' : `/checkout/${savedSlug}`, '_blank')}>
                         <ExternalLink className="h-3.5 w-3.5 mr-1" /> Buka
                       </Button>
                     </div>

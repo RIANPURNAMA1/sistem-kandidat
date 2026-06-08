@@ -6,7 +6,7 @@ import { generateToken } from '../middlewares/auth';
 import { AppError, catchAsync, sendSuccess } from '../utils/AppError';
 import { processPaymentProof } from '../services/ocrService';
 import { uploadFile } from '../config/minio';
-import { sendWaOtp } from '../services/starSenderService';
+import { sendWaOtp } from '../services/waService';
 import { v4 as uuidv4 } from 'uuid';
 import { logger } from '../utils/logger';
 

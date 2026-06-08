@@ -114,7 +114,7 @@ export const getCheckoutSetting = catchAsync(async (req: Request, res: Response)
 })
 
 export const createCheckoutSetting = catchAsync(async (req: Request, res: Response) => {
-  const { title, formType, programIds, template, fields } = req.body
+  const { title, formType, programIds, template, fields, ocrEnabled } = req.body
   const slug = generateSlug(title)
   const resolvedFormType = formType || 'REGISTER'
   const resolvedFields = fields || (resolvedFormType === 'AFFILIATE' ? DEFAULT_AFFILIATE_FIELDS : DEFAULT_REGISTER_FIELDS)
@@ -125,6 +125,7 @@ export const createCheckoutSetting = catchAsync(async (req: Request, res: Respon
       programIds: resolvedFormType === 'REGISTER' ? JSON.stringify(programIds || []) : undefined,
       template: template || 'default',
       fields: JSON.stringify(resolvedFields),
+      ocrEnabled: ocrEnabled !== undefined ? ocrEnabled : true,
       slug,
     },
   })
@@ -137,7 +138,7 @@ export const createCheckoutSetting = catchAsync(async (req: Request, res: Respon
 
 export const updateCheckoutSetting = catchAsync(async (req: Request, res: Response) => {
   const id = req.params.id as string
-  const { title, formType, programIds, template, fields, isActive } = req.body
+  const { title, formType, programIds, template, fields, isActive, ocrEnabled } = req.body
 
   const existing = await prisma.formSetting.findUnique({ where: { id } })
   if (!existing) throw new AppError('Pengaturan form tidak ditemukan', 404)
@@ -149,6 +150,7 @@ export const updateCheckoutSetting = catchAsync(async (req: Request, res: Respon
   if (template !== undefined) data.template = template
   if (fields !== undefined) data.fields = JSON.stringify(fields)
   if (isActive !== undefined) data.isActive = isActive
+  if (ocrEnabled !== undefined) data.ocrEnabled = ocrEnabled
 
   const updated = await prisma.formSetting.update({ where: { id }, data })
   return sendSuccess(res, {
@@ -180,6 +182,21 @@ export const getPublicCheckoutForm = catchAsync(async (req: Request, res: Respon
     programIds: setting.programIds ? JSON.parse(setting.programIds as string) : [],
     fields: JSON.parse(setting.fields as string),
     programs,
+  })
+})
+
+export const getActiveAffiliateForm = catchAsync(async (_req: Request, res: Response) => {
+  const setting = await prisma.formSetting.findFirst({
+    where: { formType: 'AFFILIATE', isActive: true },
+    orderBy: { createdAt: 'desc' },
+  })
+  if (!setting) {
+    return sendSuccess(res, null)
+  }
+  return sendSuccess(res, {
+    ...setting,
+    programIds: setting.programIds ? JSON.parse(setting.programIds as string) : [],
+    fields: JSON.parse(setting.fields as string),
   })
 })
 
@@ -227,8 +244,13 @@ async function submitRegisterForm(req: Request, res: Response, setting: any, fie
 
   let fileUrl = ''
   let ocrResult = null
+  const ocrEnabled = setting.ocrEnabled !== false
+  const globalOcrSetting = await prisma.setting.findUnique({ where: { key: 'ocr_analysis_enabled' } })
+  const ocrAnalysisEnabled = ocrEnabled && globalOcrSetting?.value !== 'false'
   if (req.file) {
-    ocrResult = await processPaymentProof(req.file.buffer, req.file.mimetype)
+    if (ocrAnalysisEnabled) {
+      ocrResult = await processPaymentProof(req.file.buffer, req.file.mimetype)
+    }
     const objectName = `payments/${uuidv4()}-${req.file.originalname}`
     try {
       fileUrl = await uploadFile(objectName, req.file.buffer, req.file.mimetype)

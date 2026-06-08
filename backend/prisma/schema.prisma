@@ -611,6 +611,7 @@ model FormSetting {
   fields     Json
   slug       String    @unique
   isActive   Boolean   @default(true)
+  ocrEnabled Boolean   @default(true)
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 

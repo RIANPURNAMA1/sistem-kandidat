@@ -97,8 +97,6 @@ export default function AdminDashboard() {
     },
   })
   const registerForm = formsData?.find((f: any) => f.formType === 'REGISTER' && f.isActive)
-  const affiliateForm = formsData?.find((f: any) => f.formType === 'AFFILIATE' && f.isActive)
-
   if (isLoading) return (
     <div className="space-y-6 pb-8 animate-pulse">
       <div className="h-8 w-48 bg-fb-gray-light rounded-sm" />
@@ -223,11 +221,11 @@ export default function AdminDashboard() {
               <ExternalLink className="h-4 w-4 text-fb-blue" />
             </div>
             <span className="text-xs text-fb-gray-dark truncate max-w-[200px]">
-              {affiliateForm ? `${window.location.origin}/checkout/${affiliateForm.slug}` : '/register/affiliate'}
+              {`${window.location.origin}/register/affiliate`}
             </span>
           </div>
           <Button size="sm" variant="ghost" className="h-7 text-xs text-fb-blue font-medium" onClick={() => {
-            const url = affiliateForm ? `${window.location.origin}/checkout/${affiliateForm.slug}` : `${window.location.origin}/register/affiliate`
+            const url = `${window.location.origin}/register/affiliate`
             navigator.clipboard.writeText(url); toast({ title: 'Link affiliate disalin!' })
           }}>
             <Copy className="h-3 w-3 mr-1" /> Salin

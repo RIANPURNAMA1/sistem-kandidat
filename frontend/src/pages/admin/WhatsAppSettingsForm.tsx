@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, Input, Label } from '@/components/ui/index'
 import { Button } from '@/components/ui/button'
 import { Link } from 'react-router-dom'
-import { Loader2, Eye, EyeOff, Phone, PhoneOff, Play, Square, MessageSquare, Megaphone, Send } from 'lucide-react'
+import { Loader2, Eye, EyeOff, Phone, MessageSquare, Megaphone, Send } from 'lucide-react'
 import api from '@/services/api'
 import { toast } from '@/components/ui/toaster'
 
@@ -25,13 +25,12 @@ export default function WhatsAppSettingsForm() {
     },
   })
 
-  const { data: statusData, refetch: refetchStatus } = useQuery({
+  const { data: statusData } = useQuery({
     queryKey: ['whatsapp-status'],
     queryFn: async () => {
       const { data } = await api.get('/settings/whatsapp/status')
       return data.data
     },
-    refetchInterval: 10000,
   })
 
   useEffect(() => {
@@ -58,30 +57,6 @@ export default function WhatsAppSettingsForm() {
     },
   })
 
-  const startMutation = useMutation({
-    mutationFn: async () => {
-      const { data } = await api.post('/settings/whatsapp/start')
-      return data
-    },
-    onSuccess: () => {
-      toast({ title: 'WhatsApp sender berhasil dijalankan' })
-      refetchStatus()
-    },
-    onError: (err: any) => toast({ title: 'Gagal menjalankan sender', description: err?.response?.data?.message, variant: 'destructive' }),
-  })
-
-  const stopMutation = useMutation({
-    mutationFn: async () => {
-      const { data } = await api.post('/settings/whatsapp/stop')
-      return data
-    },
-    onSuccess: () => {
-      toast({ title: 'WhatsApp sender berhasil dihentikan' })
-      refetchStatus()
-    },
-    onError: (err: any) => toast({ title: 'Gagal menghentikan sender', description: err?.response?.data?.message, variant: 'destructive' }),
-  })
-
   const testMutation = useMutation({
     mutationFn: async (to: string) => {
       const { data } = await api.post('/settings/whatsapp/test', { to })
@@ -96,34 +71,26 @@ export default function WhatsAppSettingsForm() {
 
   return (
     <div className="space-y-6">
-      {/* Status Sender */}
+      {/* Status API */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Status Sender</CardTitle>
-          <CardDescription className="text-xs">Status koneksi WhatsApp sender saat ini</CardDescription>
+          <CardTitle className="text-sm">Status API Gateway</CardTitle>
+          <CardDescription className="text-xs">Status koneksi ke gateway WhatsApp</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className={`h-10 w-10 rounded-full flex items-center justify-center ${connected ? 'bg-emerald-100' : 'bg-red-100'}`}>
-                {connected ? <Phone className="h-5 w-5 text-emerald-600" /> : <PhoneOff className="h-5 w-5 text-red-500" />}
+                <Phone className={`h-5 w-5 ${connected ? 'text-emerald-600' : 'text-red-500'}`} />
               </div>
               <div>
-                <p className="text-xs font-semibold">{connected ? 'Tersambung' : 'Tidak Tersambung'}</p>
-                <p className="text-xs text-muted-foreground">{senderNumber ? `Nomor: ${senderNumber}` : 'Belum ada nomor'}</p>
+                <p className="text-xs font-semibold">{connected ? 'Terkonfigurasi' : 'Belum Dikonfigurasi'}</p>
+                <p className="text-xs text-muted-foreground">{senderNumber ? `Nomor: ${senderNumber}` : 'API siap, isi nomor pengirim (opsional)'}</p>
               </div>
             </div>
             <div className="flex gap-2">
-              {!connected ? (
-                <Button onClick={() => startMutation.mutate()} disabled={startMutation.isPending} className="gap-1.5">
-                  {startMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
-                  Start Sender
-                </Button>
-              ) : (
-                <Button onClick={() => stopMutation.mutate()} disabled={stopMutation.isPending} variant="destructive" className="gap-1.5">
-                  {stopMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Square className="h-4 w-4" />}
-                  Stop Sender
-                </Button>
+              {!connected && (
+                <p className="text-[10px] text-slate-400 italic">Simpan pengaturan API dulu</p>
               )}
             </div>
           </div>
@@ -142,18 +109,19 @@ export default function WhatsAppSettingsForm() {
             <Input
               value={form.wa_api_url}
               onChange={e => setForm(f => ({ ...f, wa_api_url: e.target.value }))}
-              placeholder="https://api.whatsapp-gateway.com"
+              placeholder="https://api.starsender.online/api"
             />
+            <p className="text-[10px] text-slate-400">Base URL gateway (tanpa /send, /status, dll). Contoh: https://api.starsender.online/api</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Label className="text-xs">API Key</Label>
+              <Label className="text-xs">API Key (Device Key)</Label>
               <div className="relative">
                 <Input
                   type={showKey ? 'text' : 'password'}
                   value={form.wa_api_key}
                   onChange={e => setForm(f => ({ ...f, wa_api_key: e.target.value }))}
-                  placeholder="your-api-key"
+                  placeholder="Device API key dari Starsender"
                 />
                 <button
                   type="button"

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getCheckoutSettings, getCheckoutSetting, createCheckoutSetting, updateCheckoutSetting, deleteCheckoutSetting, getPublicCheckoutForm, submitCheckoutForm } from '../controllers/checkoutController';
+import { getCheckoutSettings, getCheckoutSetting, createCheckoutSetting, updateCheckoutSetting, deleteCheckoutSetting, getPublicCheckoutForm, getActiveAffiliateForm, submitCheckoutForm } from '../controllers/checkoutController';
 import { authenticate } from '../middlewares/auth';
 import { authorize } from '../middlewares/authorize';
 import { uploadPaymentProof } from '../middlewares/upload';
@@ -7,6 +7,7 @@ import { uploadPaymentProof } from '../middlewares/upload';
 const router = Router();
 
 // Public routes
+router.get('/public/affiliate/active', getActiveAffiliateForm);
 router.get('/public/:slug', getPublicCheckoutForm);
 router.post('/public/:slug/submit', uploadPaymentProof, submitCheckoutForm);
 

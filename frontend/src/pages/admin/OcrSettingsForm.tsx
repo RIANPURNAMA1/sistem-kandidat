@@ -17,6 +17,7 @@ const SCHEDULE_OPTIONS = [
 
 export default function OcrSettingsForm() {
   const queryClient = useQueryClient()
+  const [analysisEnabled, setAnalysisEnabled] = useState(true)
   const [enabled, setEnabled] = useState(false)
   const [confidenceThreshold, setConfidenceThreshold] = useState('70')
   const [schedule, setSchedule] = useState('manual')
@@ -31,6 +32,7 @@ export default function OcrSettingsForm() {
 
   useEffect(() => {
     if (data) {
+      setAnalysisEnabled(data.ocr_analysis_enabled !== 'false')
       setEnabled(data.ocr_auto_verify_enabled === 'true')
       setConfidenceThreshold(data.ocr_confidence_threshold || '70')
       setSchedule(data.ocr_auto_verify_schedule || 'manual')
@@ -68,6 +70,7 @@ export default function OcrSettingsForm() {
 
   const handleSave = () => {
     saveMutation.mutate({
+      ocr_analysis_enabled: analysisEnabled ? 'true' : 'false',
       ocr_auto_verify_enabled: enabled ? 'true' : 'false',
       ocr_confidence_threshold: confidenceThreshold,
       ocr_auto_verify_schedule: schedule,
@@ -150,24 +153,42 @@ export default function OcrSettingsForm() {
           <CardTitle className="text-sm">Konfigurasi Auto-Verifikasi</CardTitle>
           <CardDescription className="text-xs">Atur threshold confidence dan jadwal otomatisasi</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Toggle Enable */}
-          <div className="flex items-center justify-between p-3 rounded-lg border border-slate-200">
-            <div>
-              <Label className="text-xs font-semibold cursor-pointer" htmlFor="auto-verify-toggle">Aktifkan Auto-Verifikasi</Label>
-              <p className="text-[10px] text-muted-foreground mt-0.5">Verifikasi pembayaran otomatis jika nominal OCR {'>='} harga program</p>
+          <CardContent className="space-y-4">
+            {/* OCR Analysis Toggle */}
+            <div className="flex items-center justify-between p-3 rounded-lg border border-slate-200">
+              <div>
+                <Label className="text-xs font-semibold cursor-pointer" htmlFor="analysis-toggle">OCR Analysis pada Upload</Label>
+                <p className="text-[10px] text-muted-foreground mt-0.5">Scan bukti pembayaran dengan AI saat diupload oleh kandidat</p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  id="analysis-toggle"
+                  type="checkbox"
+                  checked={analysisEnabled}
+                  onChange={e => setAnalysisEnabled(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#009ce1]/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#009ce1]" />
+              </label>
             </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                id="auto-verify-toggle"
-                type="checkbox"
-                checked={enabled}
-                onChange={e => setEnabled(e.target.checked)}
-                className="sr-only peer"
-              />
-              <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#009ce1]/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#009ce1]" />
-            </label>
-          </div>
+
+            {/* Toggle Auto-Verify */}
+            <div className="flex items-center justify-between p-3 rounded-lg border border-slate-200">
+              <div>
+                <Label className="text-xs font-semibold cursor-pointer" htmlFor="auto-verify-toggle">Aktifkan Auto-Verifikasi</Label>
+                <p className="text-[10px] text-muted-foreground mt-0.5">Verifikasi pembayaran otomatis jika nominal OCR {'>='} harga program</p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  id="auto-verify-toggle"
+                  type="checkbox"
+                  checked={enabled}
+                  onChange={e => setEnabled(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#009ce1]/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#009ce1]" />
+              </label>
+            </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">

@@ -257,7 +257,7 @@ export const updateAffiliateSettings = catchAsync(async (req: Request, res: Resp
 });
 
 // OCR / Auto-Verify Settings
-const OCR_KEYS = ['ocr_auto_verify_enabled', 'ocr_confidence_threshold', 'ocr_auto_verify_schedule', 'ocr_auto_verify_last_run', 'ocr_auto_verify_last_result'];
+const OCR_KEYS = ['ocr_analysis_enabled', 'ocr_auto_verify_enabled', 'ocr_confidence_threshold', 'ocr_auto_verify_schedule', 'ocr_auto_verify_last_run', 'ocr_auto_verify_last_result'];
 
 export const getOcrSettings = catchAsync(async (_req: Request, res: Response) => {
   const settings = await prisma.setting.findMany({
